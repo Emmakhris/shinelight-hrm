@@ -1,0 +1,33 @@
+<html>
+<head><meta charset="utf-8"><style>{{ css|safe }}
+.section th { background: #0f3d5e; color: #fff; text-align: left; }
+.total td { font-weight: bold; border-top: 1pt solid #0f3d5e; }
+.big { font-size: 18pt; color: #0f3d5e; font-weight: bold; }
+</style></head>
+<body>
+<div class="header"><table><tr>
+  <td><h2>{{ org.legal_name|default:org.name }}</h2></td>
+  <td class="right"><h3>TOTAL REWARDS STATEMENT {{ d.year }}</h3></td>
+</tr></table></div>
+<p>Prepared for <b>{{ d.employee }}</b> ({{ d.staff_number }}). This statement shows the full value of your employment,
+including amounts your employer pays on your behalf.</p>
+<p class="big">Total value: GHS {{ d.total|floatformat:2 }}</p>
+{% if d.projected_annual_total %}<p class="muted">Based on {{ d.months_paid }} month(s) paid so far; projected full-year value GHS {{ d.projected_annual_total|floatformat:2 }}.</p>{% endif %}
+<table class="section border">
+  <tr><th>Cash compensation</th><th class="right">GHS</th></tr>
+  {% for k, v in d.cash.items %}<tr><td>{{ k }}</td><td class="right">{{ v|floatformat:2 }}</td></tr>{% endfor %}
+  <tr class="total"><td>Total cash</td><td class="right">{{ d.cash_total|floatformat:2 }}</td></tr>
+</table><br>
+<table class="section border">
+  <tr><th>Employer contributions</th><th class="right">GHS</th></tr>
+  {% for k, v in d.employer_contributions.items %}<tr><td>{{ k }}</td><td class="right">{{ v|floatformat:2 }}</td></tr>{% endfor %}
+  <tr class="total"><td>Total employer contributions</td><td class="right">{{ d.employer_total|floatformat:2 }}</td></tr>
+</table><br>
+<table class="section border">
+  <tr><th>Benefits</th><th class="right">Employer value</th><th class="right">Your contribution</th></tr>
+  {% for b in d.benefits %}<tr><td>{{ b.plan }}</td><td class="right">{{ b.employer_value|floatformat:2 }}</td><td class="right">{{ b.your_contribution|floatformat:2 }}</td></tr>
+  {% empty %}<tr><td colspan="3" class="muted">No benefit enrolments.</td></tr>{% endfor %}
+  <tr class="total"><td>Total benefits (employer)</td><td class="right">{{ d.benefits_total|floatformat:2 }}</td><td></td></tr>
+</table>
+<p class="muted">Figures come from released payroll and active benefit enrolments. This statement is for information only.</p>
+</body></html>

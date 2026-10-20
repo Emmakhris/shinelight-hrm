@@ -42,6 +42,18 @@ AUDITED = {
     "integrations.ApiKey": {"exclude": ["key_hash"]},
     "integrations.Webhook": {"exclude": ["secret"]},
     "hospital.ProfessionalLicense": {},
+    "servicedesk.ServiceType": {},
+    "servicedesk.Ticket": {"exclude": ["warned_at", "paused_since", "paused_seconds"]},
+    "expenses.PerDiemRate": {},
+    "expenses.ExpenseBudget": {},
+    "expenses.TravelRequest": {},
+    "expenses.ExpenseClaim": {},
+    "compensation.SalaryReviewCycle": {},
+    "compensation.SalaryReviewLine": {"sensitive": ["current_basic", "proposed_basic"]},
+    "compensation.BonusAward": {"sensitive": ["amount"]},
+    "compensation.BenefitPlan": {},
+    "compensation.BenefitEnrollment": {"sensitive": ["dependants"]},
+    "documents.SignatureRequest": {},
 }
 
 

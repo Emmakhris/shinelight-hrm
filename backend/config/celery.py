@@ -34,6 +34,14 @@ app.conf.beat_schedule = {
         "task": "apps.integrations.tasks.retry_failed_deliveries",
         "schedule": crontab(minute="*/5"),
     },
+    "servicedesk-sla": {
+        "task": "apps.servicedesk.tasks.process_ticket_sla",
+        "schedule": crontab(minute="*/15"),
+    },
+    "travel-housekeeping": {
+        "task": "apps.expenses.tasks.travel_housekeeping",
+        "schedule": crontab(hour=7, minute=30),
+    },
     "scheduled-reports": {
         "task": "apps.reports.tasks.send_scheduled_reports",
         "schedule": crontab(hour=6, minute=0),

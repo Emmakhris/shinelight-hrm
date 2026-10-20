@@ -4,8 +4,10 @@ from rest_framework.routers import DefaultRouter
 from apps.accounts.admin_views import LoginAttemptViewSet, UserLookupViewSet, UserViewSet
 from apps.attendance import views as att
 from apps.audit.views import AuditLogViewSet
+from apps.compensation import views as comp
 from apps.documents import views as docs
 from apps.employees import views as emp
+from apps.expenses import views as exp
 from apps.hospital import views as hosp
 from apps.integrations import views as integ
 from apps.leave import views as leave
@@ -15,6 +17,7 @@ from apps.payroll import views as pay
 from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSet
 from apps.reports import views as rep
 from apps.selfservice import views as me
+from apps.servicedesk import views as sd
 from apps.tenancy import views as ten
 from apps.workflow import views as wf
 
@@ -58,7 +61,24 @@ router.register("employees", emp.EmployeeViewSet, basename="employees")
 router.register("documents/categories", docs.CategoryViewSet, basename="doc-categories")
 router.register("documents/templates", docs.LetterTemplateViewSet, basename="letter-templates")
 router.register("documents/letter-requests", docs.LetterRequestViewSet, basename="letter-requests")
+router.register("documents/signatures", docs.SignatureRequestViewSet, basename="signatures")
 router.register("documents", docs.DocumentViewSet, basename="documents")
+# service desk
+router.register("helpdesk/categories", sd.CategoryViewSet, basename="sd-categories")
+router.register("helpdesk/services", sd.ServiceTypeViewSet, basename="sd-services")
+router.register("helpdesk/articles", sd.ArticleViewSet, basename="sd-articles")
+router.register("helpdesk/tickets", sd.TicketViewSet, basename="sd-tickets")
+# travel & expenses
+router.register("expenses/per-diem", exp.PerDiemViewSet, basename="per-diem")
+router.register("expenses/budgets", exp.BudgetViewSet, basename="expense-budgets")
+router.register("expenses/travel", exp.TravelViewSet, basename="travel")
+router.register("expenses/claims", exp.ClaimViewSet, basename="claims")
+# compensation & benefits
+router.register("compensation/reviews", comp.CycleViewSet, basename="salary-reviews")
+router.register("compensation/bonus-schemes", comp.SchemeViewSet, basename="bonus-schemes")
+router.register("compensation/bonus-awards", comp.AwardViewSet, basename="bonus-awards")
+router.register("benefits/plans", comp.PlanViewSet, basename="benefit-plans")
+router.register("benefits/enrollments", comp.EnrollmentViewSet, basename="benefit-enrollments")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -130,4 +150,5 @@ urlpatterns = [
     path("me/letters/", me.MyLettersView.as_view()),
     path("me/team/", me.MyTeamView.as_view()),
     path("me/data-export/", me.MyDataExportView.as_view()),
+    path("compensation/total-rewards/", comp.TotalRewardsView.as_view()),
 ] + router.urls

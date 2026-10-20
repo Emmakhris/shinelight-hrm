@@ -1,0 +1,23 @@
+<html><head><meta charset="utf-8"><style>{{ css|safe }}
+.section th { background: #0f3d5e; color: #fff; text-align: left; }
+.mono { font-family: Courier; font-size: 8pt; }
+</style></head>
+<body>
+<h2>Electronic signature certificate</h2>
+<table class="border">
+  <tr><td><b>Document</b></td><td>{{ doc.title }}{% if doc.reference_no %} ({{ doc.reference_no }}){% endif %}</td></tr>
+  <tr><td><b>Request ID</b></td><td>#{{ req.pk }} · created {{ req.created_at|date:"d/m/Y H:i" }}</td></tr>
+  <tr><td><b>Version signed</b></td><td>v{{ req.source_version }}</td></tr>
+  <tr><td><b>SHA-256 of signed version</b></td><td class="mono">{{ req.source_sha256 }}</td></tr>
+</table>
+<br>
+<table class="section border">
+  <tr><th>Signer</th><th>Capacity</th><th>Typed signature</th><th>Signed (Africa/Accra)</th><th>IP address</th></tr>
+  {% for s in signers %}
+  <tr><td>{{ s.user.get_full_name|default:s.user.username }}</td><td>{{ s.role_label }}</td>
+    <td><i>{{ s.typed_name }}</i></td><td>{{ s.signed_at|date:"d/m/Y H:i:s" }}</td><td>{{ s.ip_address|default:"" }}</td></tr>
+  {% endfor %}
+</table>
+<p class="muted">Each signer authenticated to ShineLight HRM, confirmed consent to sign electronically and typed their
+full name. Signature events are recorded in the tamper-evident audit trail. Certificate generated {{ now|date:"d/m/Y H:i" }}.</p>
+</body></html>

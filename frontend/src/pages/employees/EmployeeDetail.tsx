@@ -17,6 +17,9 @@ import { ErrorAlert, Loading, StatusChip, useToast } from "../../components/Feed
 import { FormDialog, type FieldDef } from "../../components/FormDialog";
 import { Field, PageHeader, Section } from "../../components/PageHeader";
 import { ResourcePage } from "../../components/ResourcePage";
+import SendForSignature from "../../components/SendForSignature";
+import { NewRequestDialog } from "../helpdesk/HelpDesk";
+import { TotalRewards } from "../compensation/MyBenefits";
 import { fmtDate, fmtMoney, titleCase } from "../../utils";
 import { personalFields, personnelActionFields } from "./fields";
 
@@ -48,6 +51,7 @@ export default function EmployeeDetail() {
       <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} onClick={() => setMenu(null)}>
         {e.status === "probation" && can("employees.change") && <MenuItem onClick={() => setDialog("confirm")}>Confirm appointment</MenuItem>}
         {e.status === "probation" && can("employees.change") && <MenuItem onClick={() => setDialog("extend")}>Extend probation</MenuItem>}
+        {can("servicedesk.agent") && <MenuItem onClick={() => setDialog("ticket")}>Log help desk request</MenuItem>}
         {can("documents.generate") && <MenuItem onClick={() => setDialog("letter")}><Description fontSize="small" sx={{ mr: 1 }} />Generate letter</MenuItem>}
         {can("admin.users") && !e.has_account && !exited && <MenuItem onClick={() => setDialog("account")}><ManageAccounts fontSize="small" sx={{ mr: 1 }} />Create user account</MenuItem>}
         {can("employees.change") && !exited && <MenuItem onClick={() => setDialog("separate")}><ExitToApp fontSize="small" sx={{ mr: 1 }} />Record separation / exit</MenuItem>}
@@ -99,7 +103,7 @@ export default function EmployeeDetail() {
       <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ mb: 2 }}>
         {[["overview", "Overview"], ["history", "Employment history"], ["contracts", "Contracts"], ["documents", "Documents"],
           ["bank", "Bank & payment"], ["contacts", "Emergency & beneficiaries"], ["qualifications", "Qualifications"],
-          ["leave", "Leave"], ["concurrent", "Acting / concurrent roles"]].map(([v, l]) => <Tab key={v} value={v} label={l} />)}
+          ["leave", "Leave"], ["concurrent", "Acting / concurrent roles"], ...(can("employees.view_salary") ? [["rewards", "Total rewards"]] : [])].map(([v, l]) => <Tab key={v} value={v} label={l} />)}
       </Tabs>
 
       {tab === "overview" && (
@@ -158,7 +162,9 @@ export default function EmployeeDetail() {
             { key: "confidentiality", label: "Access", render: (r) => titleCase(r.confidentiality as string) },
             { key: "expiry_date", label: "Expires", render: (r) => r.is_expired ? <StatusChip value="expired" label={fmtDate(r.expiry_date as string)} /> : fmtDate(r.expiry_date as string) },
             { key: "current_version", label: "Ver." },
-            { key: "_dl", label: "", render: (r) => (r.current_version as number) > 0 && <Button size="small" onClick={() => download(`/documents/${r.id}/download/`)}>Open</Button> }]}
+            { key: "_dl", label: "", render: (r) => (r.current_version as number) > 0 && <>
+              <Button size="small" onClick={() => download(`/documents/${r.id}/download/`)}>Open</Button>
+              {can("documents.upload") && <SendForSignature doc={r} />}</> }]}
           fields={[{ name: "category", label: "Category", type: "ref", ref: "/documents/categories/", required: true },
             { name: "title", label: "Title", required: true }, { name: "file", label: "Choose file", type: "file" },
             { name: "issue_date", label: "Issue date", type: "date", width: 6 }, { name: "expiry_date", label: "Expiry date", type: "date", width: 6 },
@@ -249,6 +255,8 @@ export default function EmployeeDetail() {
         </>
       )}
 
+      {tab === "rewards" && <TotalRewards employee={Number(id)} />}
+      <NewRequestDialog open={dialog === "ticket"} onClose={() => setDialog(null)} employee={Number(id)} />
       {/* dialogs */}
       <FormDialog open={dialog === "edit"} onClose={() => setDialog(null)} title="Edit personal details" maxWidth="md" initial={e}
         fields={personalFields} onSubmit={async (d) => { await api.patch(`/employees/${id}/`, d); toast.ok("Saved."); refresh(); }} />

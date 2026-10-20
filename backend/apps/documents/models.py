@@ -147,3 +147,44 @@ class LetterRequest(TenantModel):
 
     def __str__(self):
         return f"{self.template.name} for {self.employee.full_name}"
+
+
+class SignatureRequest(TenantModel):
+    """Electronic signature of a document by one or more signers, in order.
+
+    The built-in provider records explicit consent, typed name, timestamp, IP and the SHA-256 of the
+    exact version signed, and appends a signature certificate page to a new document version.
+    `provider` allows plugging in an external e-signature service later."""
+
+    STATUS = [("pending", "Awaiting signatures"), ("completed", "Completed"), ("declined", "Declined"),
+              ("cancelled", "Cancelled"), ("expired", "Expired")]
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="signature_requests")
+    message = models.TextField(blank=True)
+    provider = models.CharField(max_length=20, default="internal")
+    status = models.CharField(max_length=10, choices=STATUS, default="pending")
+    sequential = models.BooleanField(default=True, help_text="Signers sign in order.")
+    due_date = models.DateField(null=True, blank=True)
+    source_version = models.PositiveIntegerField(default=1)
+    source_sha256 = models.CharField(max_length=64, blank=True)
+    signed_version = models.PositiveIntegerField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class Signer(TenantModel):
+    STATUS = [("waiting", "Waiting"), ("pending", "Ready to sign"), ("signed", "Signed"), ("declined", "Declined")]
+    request = models.ForeignKey(SignatureRequest, on_delete=models.CASCADE, related_name="signers")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="signature_tasks")
+    order = models.PositiveSmallIntegerField(default=1)
+    role_label = models.CharField(max_length=80, blank=True, help_text="e.g. Employee, For the employer")
+    status = models.CharField(max_length=10, choices=STATUS, default="waiting")
+    typed_name = models.CharField(max_length=150, blank=True)
+    signed_at = models.DateTimeField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+    decline_reason = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["request", "order", "id"]

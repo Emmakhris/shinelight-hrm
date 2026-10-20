@@ -118,6 +118,12 @@ def seed_payroll():
         ("INSURANCE_EE", "Medical insurance (employee)", "deduction", "insurance", "fixed", "normal", {}),
         ("INSURANCE_ER", "Medical insurance (employer)", "employer", "insurance", "fixed", "exempt", {}),
     ]
+    one_off = {"is_recurring": False, "prorate": False, "is_system": True}
+    elements += [
+        ("REIMBURSEMENT", "Expense reimbursement", "earning", "other", "fixed", "exempt", one_off),
+        ("TRAVEL_ADVANCE", "Travel advance", "earning", "advance", "fixed", "exempt", one_off),
+        ("ADVANCE_RECOVERY", "Unspent advance recovery", "deduction", "advance", "fixed", "normal", one_off),
+    ]
     for i, (code, name, et, cat, calc, tax, extra) in enumerate(elements):
         PayElement.objects.get_or_create(code=code, defaults={
             "name": name, "element_type": et, "category": cat, "calculation": calc, "tax_treatment": tax,
@@ -144,6 +150,20 @@ def seed_workflows():
             (2, "Payroll review", "role", payroll, 48, False),
             (3, "HR Director approval", "role", hr_dir, 72, False)]),
         ("payroll_run", "Payroll approval", 100, {}, [(1, "Payroll approver", "role", approver, 24, False)]),
+        ("travel_request", "Official travel", 100, {}, [
+            (1, "Supervisor approval", "supervisor", None, 48, False),
+            (2, "Head of department", "dept_head", None, 48, True)]),
+        ("travel_request", "International travel", 50, {"field": "destination_class", "op": "in",
+                                                          "value": ["africa", "international"]}, [
+            (1, "Supervisor approval", "supervisor", None, 48, False),
+            (2, "Head of department", "dept_head", None, 48, True),
+            (3, "HR Director approval", "role", hr_dir, 72, False)]),
+        ("expense_claim", "Expense claim", 100, {}, [
+            (1, "Supervisor approval", "supervisor", None, 48, False),
+            (2, "Finance review", "role", Role.objects.get(code="finance_officer"), 48, False)]),
+        ("salary_review", "Salary review approval", 100, {}, [(1, "HR Director approval", "role", hr_dir, 120, False)]),
+        ("bonus_scheme", "Bonus approval", 100, {}, [(1, "HR Director approval", "role", hr_dir, 120, False)]),
+        ("benefit_enrollment", "Benefit enrolment", 100, {}, [(1, "HR verification", "role", hr, 72, False)]),
     ]
     for rtype, name, prio, cond, steps in defs:
         d, created = WorkflowDefinition.objects.get_or_create(request_type=rtype, name=name,
@@ -153,6 +173,98 @@ def seed_workflows():
                 WorkflowStep.objects.create(definition=d, order=order, name=sname, approver_type=atype, role=role,
                                             sla_hours=sla, skip_if_no_approver=skip,
                                             comment_rule="reject")
+
+
+def seed_servicedesk():
+    from apps.servicedesk.models import KnowledgeArticle, ServiceCategory, ServiceType
+
+    hr = Role.objects.get(code="hr_officer")
+    payroll = Role.objects.get(code="payroll_officer")
+    catalogue = {
+        ("records", "Records & letters", 1): [
+            ("Employment confirmation letter", "Letter confirming your employment (bank, embassy, landlord).", 8, 48, hr,
+             "employment_confirmation", [{"name": "addressed_to", "label": "Addressed to", "required": True},
+                                         {"name": "purpose", "label": "Purpose"}]),
+            ("Update personal records", "Name change, marital status, ID numbers (attach evidence).", 8, 72, hr, None, []),
+            ("Introduction letter", "Letter introducing you to an external institution.", 8, 48, hr, "introduction",
+             [{"name": "addressed_to", "label": "Addressed to", "required": True}]),
+        ],
+        ("payroll", "Payroll & tax", 2): [
+            ("Payslip / salary query", "Questions about deductions, net pay or a missing payment.", 4, 48, payroll, None,
+             [{"name": "period", "label": "Payroll month", "required": True}]),
+            ("Change bank account", "Provide a bank letter or MoMo statement in your name.", 8, 72, payroll, None,
+             [{"name": "bank", "label": "New bank / network", "required": True}]),
+            ("SSNIT / tax relief query", "SSNIT records, tax relief claims, P9/annual tax certificate.", 8, 120, payroll,
+             None, []),
+        ],
+        ("leave", "Leave & attendance", 3): [
+            ("Leave balance correction", "Your leave balance looks wrong.", 8, 72, hr, None, []),
+            ("Attendance / biometric issue", "Fingerprint not recognised, missing clock records.", 4, 48, hr, None, []),
+        ],
+        ("benefits", "Benefits & welfare", 4): [
+            ("Medical / insurance claim support", "Help with health insurance cards, claims or dependants.", 8, 72, hr,
+             None, []),
+            ("Staff welfare request", "Bereavement, wedding or other welfare support.", 8, 72, hr, None, []),
+        ],
+        ("relations", "Employee relations", 5): [
+            ("Raise a grievance", "Confidential. Only the assigned HR officer will see this.", 4, 240, hr, None, []),
+        ],
+        ("general", "General HR enquiry", 6): [("General question", "Anything else for HR.", 8, 72, hr, None, [])],
+    }
+    from apps.documents.models import LetterTemplate
+
+    for (code, name, order), services in catalogue.items():
+        cat, _ = ServiceCategory.objects.get_or_create(code=code, defaults={"name": name, "order": order})
+        for sname, desc, resp, res, role, tpl, form in services:
+            ServiceType.objects.get_or_create(category=cat, name=sname, defaults={
+                "description": desc, "response_sla_hours": resp, "resolution_sla_hours": res, "team_role": role,
+                "letter_template": LetterTemplate.objects.filter(code=tpl).first() if tpl else None,
+                "form_fields": form, "is_confidential": code == "relations",
+                "default_priority": "high" if code == "relations" else "normal"})
+    articles = [
+        ("payroll", "How is my PAYE calculated?",
+         "PAYE is charged on your chargeable income: taxable earnings minus your 5.5% SSNIT contribution, exempt "
+         "provident fund contributions and approved reliefs. The GRA graduated monthly bands are applied to that "
+         "amount. Bonuses up to 15% of annual basic are taxed separately at 5%.", "tax,paye,salary,deduction"),
+        ("payroll", "When are payslips available?",
+         "Payslips are published in My payslips as soon as payroll is released, normally a few days before pay day. "
+         "PDF payslips may be protected with your staff number or date of birth (DDMMYYYY).", "payslip,pdf,password"),
+        ("leave", "How many days of annual leave do I get?",
+         "Your entitlement depends on your category and years of service (minimum 15 working days under the Labour "
+         "Act). Weekends and public holidays are not counted. See My leave for your live balance.", "annual,leave,balance"),
+        ("records", "How do I get a confirmation of employment letter?",
+         "Go to Help desk, choose Employment confirmation letter and fill in who it should be addressed to. HR will "
+         "issue it, normally within 2 working days; download it from My documents.", "letter,bank,embassy"),
+        ("benefits", "How do I add dependants to my medical insurance?",
+         "Open Benefits, select your health plan and update your enrolment with your dependants' details. HR will "
+         "verify and update the insurer.", "medical,insurance,dependants"),
+    ]
+    for code, title, body, tags in articles:
+        KnowledgeArticle.objects.get_or_create(title=title, defaults={
+            "body": body, "tags": tags, "category": ServiceCategory.objects.filter(code=code).first()})
+
+
+def seed_expenses_and_benefits():
+    from apps.compensation.models import BenefitPlan
+    from apps.expenses.models import PerDiemRate
+    from apps.payroll.models import PayElement
+
+    start = dt.date(dt.date.today().year, 1, 1)
+    rates = [("local", 0, 3, "GHS", 150, 300), ("local", 4, 99, "GHS", 250, 500),
+             ("national", 0, 3, "GHS", 250, 450), ("national", 4, 99, "GHS", 400, 800),
+             ("africa", 0, 99, "USD", 120, 180), ("international", 0, 99, "USD", 200, 280)]
+    for dest, lo, hi, cur, daily, accom in rates:
+        PerDiemRate.objects.get_or_create(destination_class=dest, min_grade_level=lo, max_grade_level=hi,
+                                          effective_from=start, defaults={"currency": cur, "daily_allowance": daily,
+                                                                          "accommodation_cap": accom})
+    ins = PayElement.objects.filter(code="INSURANCE_EE").first()
+    BenefitPlan.objects.get_or_create(code="medical", defaults={
+        "name": "Staff medical insurance", "plan_type": "health", "provider": "Private health insurer",
+        "employer_monthly_cost": 250, "employee_monthly_cost": 50, "cost_per_dependant": 40, "max_dependants": 4,
+        "min_service_months": 0, "deduction_element": ins, "requires_approval": True})
+    BenefitPlan.objects.get_or_create(code="group_life", defaults={
+        "name": "Group life assurance", "plan_type": "life", "provider": "Life assurer",
+        "employer_monthly_cost": 35, "employee_monthly_cost": 0, "auto_enroll": True, "requires_approval": False})
 
 
 def seed_documents():
@@ -253,6 +365,8 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         seed_workflows()
         seed_documents()
         seed_attendance()
+        seed_servicedesk()
+        seed_expenses_and_benefits()
         year = dt.date.today().year
         seed_public_holidays(year)
         seed_public_holidays(year + 1)

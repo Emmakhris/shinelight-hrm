@@ -60,6 +60,21 @@ const Settings = lazy(() => import("./pages/admin/Settings"));
 const NotificationsAdmin = lazy(() => import("./pages/admin/NotificationsAdmin"));
 const Integrations = lazy(() => import("./pages/admin/Integrations"));
 const Audit = lazy(() => import("./pages/admin/Audit"));
+const HelpDesk = lazy(() => import("./pages/helpdesk/HelpDesk"));
+const TicketDetail = lazy(() => import("./pages/helpdesk/TicketDetail"));
+const Queue = lazy(() => import("./pages/helpdesk/Queue"));
+const HelpdeskMetrics = lazy(() => import("./pages/helpdesk/Metrics"));
+const Knowledge = lazy(() => import("./pages/helpdesk/Knowledge"));
+const HelpdeskSetup = lazy(() => import("./pages/helpdesk/HelpdeskSetup"));
+const MyExpenses = lazy(() => import("./pages/expenses/MyExpenses"));
+const ExpenseAdmin = lazy(() => import("./pages/expenses/ExpenseAdmin"));
+const ExpenseSetup = lazy(() => import("./pages/expenses/ExpenseSetup"));
+const Reviews = lazy(() => import("./pages/compensation/Reviews"));
+const ReviewDetail = lazy(() => import("./pages/compensation/ReviewDetail"));
+const Bonuses = lazy(() => import("./pages/compensation/Bonuses"));
+const MyBenefits = lazy(() => import("./pages/compensation/MyBenefits"));
+const BenefitsAdmin = lazy(() => import("./pages/compensation/BenefitsAdmin"));
+const MySignatures = lazy(() => import("./pages/me/MySignatures"));
 
 function Guard({ perm, scope, feature, children }: { perm?: string | string[]; scope?: string; feature?: string; children: ReactNode }) {
   const { can, feature: hasFeature } = useAuth();
@@ -140,6 +155,21 @@ export default function App() {
           <Route path="admin/notifications" element={g(<NotificationsAdmin />, "notifications.manage")} />
           <Route path="admin/integrations" element={g(<Integrations />, "integrations.manage")} />
           <Route path="admin/audit" element={g(<Audit />, "audit.view")} />
+          <Route path="helpdesk" element={<HelpDesk />} />
+          <Route path="helpdesk/kb" element={<Knowledge />} />
+          <Route path="helpdesk/tickets/:id" element={<TicketDetail />} />
+          <Route path="helpdesk/queue" element={g(<Queue />, ["servicedesk.agent", "servicedesk.manage"])} />
+          <Route path="helpdesk/metrics" element={g(<HelpdeskMetrics />, ["servicedesk.manage", "reports.view"])} />
+          <Route path="helpdesk/setup" element={g(<HelpdeskSetup />, "servicedesk.manage")} />
+          <Route path="expenses/my" element={<MyExpenses />} />
+          <Route path="expenses/manage" element={g(<ExpenseAdmin />, ["expenses.manage", "expenses.pay"])} />
+          <Route path="expenses/setup" element={g(<ExpenseSetup />, "expenses.manage")} />
+          <Route path="compensation/reviews" element={g(<Reviews />, "compensation.view")} />
+          <Route path="compensation/reviews/:id" element={g(<ReviewDetail />, "compensation.view")} />
+          <Route path="compensation/bonuses" element={g(<Bonuses />, "compensation.view")} />
+          <Route path="me/benefits" element={<MyBenefits />} />
+          <Route path="benefits/admin" element={g(<BenefitsAdmin />, "benefits.manage")} />
+          <Route path="me/signatures" element={<MySignatures />} />
           <Route path="*" element={<Alert severity="info">Page not found.</Alert>} />
         </Route>
       </Routes>

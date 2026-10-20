@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.audit import services as audit
@@ -23,6 +24,8 @@ from .models import (
     DocumentVersion,
     LetterRequest,
     LetterTemplate,
+    SignatureRequest,
+    Signer,
 )
 
 
@@ -283,3 +286,114 @@ class LetterRequestViewSet(TenantModelViewSet):
     scope_prefix = "employee__"
     http_method_names = ["get"]
     filterset_fields = ["status", "employee"]
+
+
+# ---------------------------------------------------------------- e-signature
+class SignerSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.__str__", read_only=True)
+
+    class Meta:
+        model = Signer
+        fields = ["id", "user", "user_name", "order", "role_label", "status", "typed_name", "signed_at",
+                  "decline_reason"]
+
+
+class SignatureRequestSerializer(serializers.ModelSerializer):
+    signers = SignerSerializer(many=True, read_only=True)
+    document_title = serializers.CharField(source="document.title", read_only=True)
+    employee_name = serializers.CharField(source="document.employee.full_name", read_only=True, default=None)
+    created_by_name = serializers.CharField(source="created_by.__str__", read_only=True, default=None)
+
+    class Meta:
+        model = SignatureRequest
+        fields = ["id", "document", "document_title", "employee_name", "message", "status", "sequential", "due_date",
+                  "source_version", "source_sha256", "signed_version", "completed_at", "created_at", "created_by_name",
+                  "signers"]
+
+
+class SignatureRequestViewSet(TenantModelViewSet):
+    queryset = SignatureRequest.objects.select_related("document__employee", "created_by").prefetch_related("signers__user")
+    serializer_class = SignatureRequestSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post"]
+    filterset_fields = ["status", "document"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if self.request.query_params.get("mine") == "1" or not has_perm(user, "documents.upload"):
+            return qs.filter(Q(signers__user=user) | Q(created_by=user)).distinct()
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        from django.contrib.auth import get_user_model
+
+        from . import esign
+
+        if not has_perm(request.user, "documents.upload"):
+            raise PermissionDenied("Only HR can send documents for signature.")
+        doc = Document.objects.get(pk=request.data["document"])
+        if doc.employee_id and not can_access_employee(request.user, "documents.upload", doc.employee):
+            raise PermissionDenied()
+        User = get_user_model()
+        signers = []
+        for i, s in enumerate(request.data.get("signers", []), start=1):
+            if s.get("employee_self") and doc.employee_id:
+                if not doc.employee.user_id:
+                    raise BusinessRuleError("The employee has no user account to sign with.")
+                user = doc.employee.user
+            else:
+                user = User.objects.get(pk=s["user"], organization=request.user.organization, is_active=True)
+            signers.append({"user": user, "role_label": s.get("role_label", ""), "order": s.get("order") or i})
+        req = esign.request_signatures(doc, signers, request.data.get("message", ""),
+                                       bool(request.data.get("sequential", True)),
+                                       dt.date.fromisoformat(request.data["due_date"]) if request.data.get("due_date") else None)
+        return Response(self.get_serializer(req).data, status=201)
+
+    @action(detail=True, methods=["post"])
+    def cancel(self, request, pk=None):
+        req = self.get_object()
+        if req.created_by_id != request.user.id and not has_perm(request.user, "documents.manage"):
+            raise PermissionDenied()
+        if req.status != "pending":
+            raise BusinessRuleError("Only pending requests can be cancelled.")
+        req.status = "cancelled"
+        req.save(update_fields=["status", "updated_at"])
+        audit.log("update", req, {"status": "cancelled"})
+        return Response(self.get_serializer(req).data)
+
+    @action(detail=False, url_path="my-tasks")
+    def my_tasks(self, request):
+        tasks = Signer.objects.filter(user=request.user).select_related("request__document")
+        return Response([{"signer_id": s.id, "request": s.request_id, "document": s.request.document_id,
+                          "document_title": s.request.document.title, "message": s.request.message,
+                          "status": s.status, "request_status": s.request.status, "due_date": s.request.due_date,
+                          "role_label": s.role_label, "signed_at": s.signed_at,
+                          "signed_version": s.request.signed_version, "source_version": s.request.source_version}
+                         for s in tasks.order_by("-created_at")[:100]])
+
+    @action(detail=False, methods=["get"], url_path=r"preview/(?P<signer_id>\d+)")
+    def preview(self, request, signer_id=None):
+        """Signers may view the exact version they are asked to sign (even without document permissions)."""
+        s = Signer.objects.select_related("request__document").get(pk=signer_id, user=request.user)
+        version = s.request.document.versions.get(version=s.request.signed_version or s.request.source_version)
+        audit.log("download", s.request.document, {"signature_preview": s.request_id})
+        return FileResponse(version.file.open("rb"), filename=version.file_name,
+                            content_type=version.content_type or "application/pdf")
+
+    @action(detail=False, methods=["post"], url_path=r"sign/(?P<signer_id>\d+)")
+    def sign(self, request, signer_id=None):
+        from apps.core.middleware import client_ip
+
+        from . import esign
+        s = Signer.objects.select_related("request__document").get(pk=signer_id)
+        req = esign.sign(s, request.user, request.data.get("typed_name", ""), bool(request.data.get("consent")),
+                         client_ip(request), request.META.get("HTTP_USER_AGENT", ""))
+        return Response(self.get_serializer(req).data)
+
+    @action(detail=False, methods=["post"], url_path=r"decline/(?P<signer_id>\d+)")
+    def decline(self, request, signer_id=None):
+        from . import esign
+        s = Signer.objects.get(pk=signer_id)
+        req = esign.decline(s, request.user, request.data.get("reason", ""))
+        return Response(self.get_serializer(req).data)

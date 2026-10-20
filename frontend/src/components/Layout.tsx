@@ -17,7 +17,9 @@ import Menu from "@mui/icons-material/Menu";
 import NotificationsOutlined from "@mui/icons-material/NotificationsOutlined";
 import Payments from "@mui/icons-material/Payments";
 import PersonOutline from "@mui/icons-material/PersonOutline";
+import Savings from "@mui/icons-material/Savings";
 import Schedule from "@mui/icons-material/Schedule";
+import SupportAgent from "@mui/icons-material/SupportAgent";
 import { AppBar, Avatar, Badge, Box, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon,
   ListItemText, ListSubheader, Menu as MuiMenu, MenuItem, Toolbar, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -40,6 +42,10 @@ const NAV: NavGroup[] = [
     { label: "My attendance", to: "/attendance/my", employee: true },
     { label: "My payslips", to: "/me/payslips", employee: true, feature: "payroll" },
     { label: "My documents & letters", to: "/me/documents", employee: true },
+    { label: "Documents to sign", to: "/me/signatures" },
+    { label: "HR help desk", to: "/helpdesk" },
+    { label: "Travel & expenses", to: "/expenses/my", employee: true },
+    { label: "Benefits & total rewards", to: "/me/benefits", employee: true },
     { label: "Loans & advances", to: "/me/loans", employee: true, feature: "payroll" },
     { label: "My requests", to: "/me/requests" },
     { label: "Staff directory", to: "/directory" },
@@ -49,6 +55,18 @@ const NAV: NavGroup[] = [
     { label: "My team", to: "/team", perm: ["leave.approve", "attendance.approve"] },
     { label: "Team attendance today", to: "/attendance/team", perm: "attendance.approve" },
     { label: "Delegations", to: "/delegations", perm: ["leave.approve", "attendance.approve", "payroll.approve"] },
+  ] },
+  { label: "HR service desk", icon: <SupportAgent />, items: [
+    { label: "Ticket queue", to: "/helpdesk/queue", perm: ["servicedesk.agent", "servicedesk.manage"] },
+    { label: "Service KPIs", to: "/helpdesk/metrics", perm: "servicedesk.manage" },
+    { label: "Catalogue & knowledge base", to: "/helpdesk/setup", perm: "servicedesk.manage" },
+  ] },
+  { label: "Rewards & expenses", icon: <Savings />, items: [
+    { label: "Salary reviews", to: "/compensation/reviews", perm: "compensation.view" },
+    { label: "Bonuses", to: "/compensation/bonuses", perm: "compensation.view" },
+    { label: "Benefits administration", to: "/benefits/admin", perm: "benefits.manage" },
+    { label: "Travel & claims admin", to: "/expenses/manage", perm: ["expenses.manage", "expenses.pay"] },
+    { label: "Per diem & budgets", to: "/expenses/setup", perm: "expenses.manage" },
   ] },
   { label: "Dashboards & reports", icon: <Assessment />, items: [
     { label: "HR dashboard", to: "/dashboard", perm: "reports.view" },

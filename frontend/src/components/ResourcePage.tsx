@@ -12,7 +12,7 @@ import { ConfirmDialog, ErrorAlert, useToast } from "./Feedback";
 import { FormDialog, type FieldDef } from "./FormDialog";
 import { PageHeader } from "./PageHeader";
 
-type Row = Record<string, unknown>;
+type Row = import("./DataTable").Row;
 
 export interface ResourceProps {
   title: string;

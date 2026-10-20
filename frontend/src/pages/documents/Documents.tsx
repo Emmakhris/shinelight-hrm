@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { StatusChip, useToast } from "../../components/Feedback";
 import { PageHeader } from "../../components/PageHeader";
 import { ResourcePage } from "../../components/ResourcePage";
+import SendForSignature from "../../components/SendForSignature";
 import { fmtDate, titleCase } from "../../utils";
 
 const CONF = [{ value: "internal", label: "Internal" }, { value: "confidential", label: "Confidential (HR)" }, { value: "restricted", label: "Restricted" }];
@@ -42,6 +43,7 @@ export default function Documents() {
   ];
   const actions = (r: Record<string, unknown>) => <>
     {(r.current_version as number) > 0 && <Button size="small" onClick={() => download(`/documents/${r.id}/download/`)}>Open</Button>}
+    {can("documents.upload") && <SendForSignature doc={r} />}
     {can("documents.manage") && <Button size="small" onClick={async () => {
       const reason = r.legal_hold ? "" : window.prompt("Legal hold reason:"); if (!r.legal_hold && !reason) return;
       await api.post(`/documents/${r.id}/legal_hold/`, { hold: !r.legal_hold, reason }); toast.ok("Legal hold updated."); inv("/documents/");
