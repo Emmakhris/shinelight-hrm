@@ -46,7 +46,9 @@ The workflow engine also skips a step when its only approver already approved an
 | **Onboarding** | Checklists start automatically when a new employee is registered; the most specific template is used (department and employment type); tasks route to HR, the supervisor, IT, finance, administration and the new hire, with pre-boarding tasks before day one; completion rules (document on file, policy acknowledgment, forms such as the new-hire survey); overdue escalation to HR; dashboard |
 | **Probation** | Mid-point and end-of-probation reviews scheduled from the hire and probation end dates, with reminders to the supervisor; rated review with a recommendation; confirmation (effective from the end of probation, with a confirmation letter), extension (re-schedules the final review) or termination through the approval workflow; employee sees and acknowledges the review once submitted |
 
-Still to come in Phase 3: performance, learning, employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Performance** | Review cycles (annual, half-year, quarterly) with eligibility rules and deadlines; organization and department goals that individual objectives cascade from; role-specific forms (clinical, management, standard) with weighted objectives and competencies on a configurable rating scale; objectives agreed by the supervisor through the approval workflow; mid-year check-in; self-assessment, manager review (allowed once the self-assessment deadline passes) and weighted scoring; anonymous 360 feedback shown only once 3+ people respond; calibration against a target distribution with audited reasons; release and employee acknowledgment (disputes alert HR); improvement plans with milestones, HR approval and outcomes; ratings feed salary-review merit guidelines |
+
+Still to come in Phase 3: learning, employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -82,11 +84,12 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 72 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation
+cd backend && .venv/Scripts/python -m pytest          # 77 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits
 .venv/Scripts/python scripts/e2e_phase3.py             # vacancy → career-site application → offer approval → candidate accepts → hire → onboarding → requisition
+.venv/Scripts/python scripts/e2e_performance.py        # cycle → objectives → self/manager review → calibration → release → acknowledgment → improvement plan
 cd frontend && npm test && npx tsc --noEmit && npm run build
 ```
 

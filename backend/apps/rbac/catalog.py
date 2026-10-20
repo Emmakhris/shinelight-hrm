@@ -58,6 +58,8 @@ PERMISSIONS = [
     ("recruitment.offer", "Prepare offers and convert hires", True),
     ("onboarding.view", "View onboarding progress and probation reviews", False),
     ("onboarding.manage", "Manage onboarding checklists, tasks and probation", False),
+    ("performance.view", "View appraisals and improvement plans", True),
+    ("performance.manage", "Run review cycles, templates, calibration and improvement plans", True),
     ("hospital.view", "View clinical credentials and rosters", False),
     ("hospital.manage", "Manage clinical credentials and rosters", False),
 ]
@@ -93,7 +95,8 @@ DEFAULT_ROLES = {
          "leave.approve", "leave.manage", "attendance.view", "attendance.approve", "reports.view",
          "notifications.manage", "hospital.view", "hospital.manage", "servicedesk.agent", "servicedesk.manage",
          "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
-         "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage"],
+         "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage", "performance.view",
+         "performance.manage"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
@@ -119,13 +122,13 @@ DEFAULT_ROLES = {
         "department",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
          "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
-         "onboarding.view"],
+         "onboarding.view", "performance.view"],
     ),
     "line_manager": (
         "Line Manager",
         "team",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
-         "attendance.approve", "expenses.view", "recruitment.requisition", "onboarding.view"],
+         "attendance.approve", "expenses.view", "recruitment.requisition", "onboarding.view", "performance.view"],
     ),
     "finance_officer": (
         "Finance Officer",
@@ -136,13 +139,15 @@ DEFAULT_ROLES = {
     "training_officer": (
         "Training Officer",
         "organization",
-        ["employees.view", "organization.view", "documents.view", "reports.view", "hospital.view"],
+        ["employees.view", "organization.view", "documents.view", "reports.view", "hospital.view",
+         "performance.view"],
     ),
     "employee": (
         "Employee",
         "own",
         ["employees.view", "employees.view_personal", "employees.view_salary", "employees.view_bank",
-         "leave.view", "attendance.view", "documents.view", "organization.view", "expenses.view"],
+         "leave.view", "attendance.view", "documents.view", "organization.view", "expenses.view",
+         "performance.view"],
     ),
     "internal_auditor": (
         "Internal Auditor (read-only)",

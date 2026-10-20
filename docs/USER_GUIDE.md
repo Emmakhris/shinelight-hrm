@@ -16,6 +16,8 @@
 - **Signatures:** Documents to sign → read the document, type your full name and confirm.
 - **Internal jobs:** Internal job openings → *Apply*. Your details come from your employee record.
 - **New starters:** Onboarding tasks shows your checklist (policies to acknowledge, details to confirm, training, a short feedback survey) and what HR, IT and your supervisor are preparing for you.
+- **Appraisal:** My performance → open the current cycle. Add objectives (weights total 100%, link them to a goal) and submit them to your supervisor; at year end rate yourself with evidence and submit. When your review is released, read it and acknowledge; if you disagree, say why and HR follows up.
+- **360 feedback:** Feedback requests lists colleagues who asked for your view. Answers are confidential and only shown combined with at least two others.
 - **Interview panels:** if you sit on a panel, Interview panels lists your interviews; open the CV and submit a scorecard afterwards.
 
 ## Line managers / department heads
@@ -26,6 +28,7 @@
 - **Roster** (if you manage shifts): assign shifts, generate from a pattern, then **Publish**.
 - **Staff requisitions:** request new or replacement staff with the business need and budget. Approval goes to the head of department, HR Director and finance.
 - **Probation reviews:** you are reminded a week before each review. Rate the six criteria and recommend confirmation, extension (with the gaps) or termination; HR decides through the inbox.
+- **Team appraisals:** agree (or set) objectives, record the mid-year check-in, then complete the manager review. Ratings of *Needs improvement* or lower need comments and a development plan; open an **Improvement plan** with measurable milestones and support, which HR approves before the employee sees it.
 - **Onboarding tasks:** day-one welcome, departmental induction and probation objectives for your new starters.
 
 ## HR officers
@@ -42,6 +45,10 @@
 - **Pipeline:** sort by screening score; the flag shows knock-out answers and missing requirements, which are advisory. Select candidates and *Move* them; rejections need a reason and can send the regret email.
 - **Candidate page:** schedule interviews (the panel and candidate are notified), record reference and background checks (tick consent first), then *Make offer*. After approval, *Send* emails a secure link; when the candidate accepts, *Hire* creates the employee and starts onboarding.
 - **Talent pool:** Candidates & talent pool lists people who agreed to be kept on file. Data is anonymised automatically after the retention period (12 months by default).
+
+## HR: performance cycles
+
+Create a cycle (period, deadlines, departments, target distribution) and **Launch** it: each eligible employee gets an appraisal on the matching form with their supervisor as reviewer. Move it on with the phase button (mid-year → year-end review → calibration → release). In calibration, open appraisals to confirm or adjust ratings (a reason is required and audited) and compare the distribution with the target. Forms, competencies and rating scales are under *Forms, competencies & scales*. Salary review guidelines can include a `rating` (e.g. rating 5 → 8–12%) so merit proposals follow the latest final rating.
 
 ## HR service desk agents
 

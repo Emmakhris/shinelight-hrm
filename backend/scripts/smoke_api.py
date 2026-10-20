@@ -45,6 +45,10 @@ ENDPOINTS = [
     "recruitment/checks/", "recruitment/offers/", "recruitment/analytics/", "me/vacancies/", "me/onboarding/",
     "onboarding/templates/", "onboarding/template-tasks/", "onboarding/records/", "onboarding/records/dashboard/",
     "onboarding/tasks/", "onboarding/tasks/?mine=1&open=1", "onboarding/probation/", "onboarding/probation/?mine=1",
+    "performance/scales/", "performance/competencies/", "performance/templates/", "performance/cycles/",
+    "performance/cycles/2/summary/", "performance/goals/", "performance/appraisals/", "performance/appraisals/?mine=1",
+    "performance/appraisals/?team=1", "performance/objectives/", "performance/feedback/", "performance/plans/",
+    "performance/plans/?mine=1", "performance/milestones/", "compensation/reviews/",
 ]
 
 failures = 0

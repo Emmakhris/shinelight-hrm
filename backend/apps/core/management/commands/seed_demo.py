@@ -48,6 +48,8 @@ class Command(BaseCommand):
             self._seed(org)
         with org_context(org, admin), transaction.atomic():
             self._seed_talent(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_performance(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -465,3 +467,121 @@ class Command(BaseCommand):
                 onboarding.schedule_probation_reviews(e)
         self.stdout.write(f"Recruitment demo: {vac.reference} with {len(apps)} applicants; career site "
                           f"/careers/{org.code}. New hire {emp.staff_number} in onboarding.")
+
+
+    def _seed_performance(self, org, admin):
+        """Last year's closed appraisal cycle and this year's cycle in year-end review (Phase 3). Idempotent."""
+        from apps.employees.models import Employee, EmployeeCategory
+        from apps.performance import services as perf
+        from apps.performance.models import (Appraisal, AppraisalTemplate, Competency, FeedbackRequest, Goal,
+                                             ImprovementPlan, Objective, PlanMilestone, ReviewCycle)
+        from apps.organization.models import Department
+
+        if ReviewCycle.objects.exists() or not Employee.objects.exists():
+            return
+        User = get_user_model()
+        today = dt.date.today()
+        year = today.year
+        hrd = User.objects.get(username="hrdirector")
+        mgmt = EmployeeCategory.objects.filter(code="management").first()
+        if mgmt:
+            tpl, created = AppraisalTemplate.objects.get_or_create(name="Management appraisal", defaults={
+                "rating_scale": perf.default_scale(), "objectives_weight": 60, "category": mgmt, "include_360": True})
+            if created:
+                tpl.competencies.set(list(Competency.objects.filter(category__in=["core", "leadership"])))
+        dist = {"5": 10, "4": 25, "3": 45, "2": 15, "1": 5}
+        ward = Department.objects.get(code="WARD_A")
+        objectives_by_family = {
+            True: [("Deliver safe patient care with zero medication errors", "Incident reports", "0 errors"),
+                   ("Complete nursing documentation for every shift", "Audit of 20 charts / quarter", "95%"),
+                   ("Complete 20 CPD credit hours", "NMC CPD record", "20 hours")],
+            False: [("Deliver core duties on schedule", "Deadlines met", "95%"),
+                    ("Improve a key process in the unit", "Process change implemented", "1 improvement"),
+                    ("Complete agreed training", "Training records", "2 courses")],
+        }
+
+        def setup_objectives(ap, goal=None):
+            rows = objectives_by_family[bool(ap.employee.job_title and ap.employee.job_title.is_clinical)]
+            for (title, measure, target), w in zip(rows, (40, 30, 30), strict=True):
+                Objective.objects.create(appraisal=ap, title=title, measure=measure, target=target, weight=D(w),
+                                         goal=goal if w == 40 else None)
+
+        def rate_all(ap, field, base):
+            for o in ap.objectives.all():
+                setattr(o, field, max(1, min(5, base + random.choice([-1, 0, 0, 1]))))
+                o.achievement = o.achievement or "Achieved as agreed; evidence in the unit records."
+                o.save()
+            for c in ap.competency_ratings.all():
+                setattr(c, field, max(1, min(5, base + random.choice([-1, 0, 0, 1]))))
+                c.save()
+
+        # last year: closed, with calibrated final ratings (drives merit guidelines and history)
+        last = ReviewCycle.objects.create(name=f"Annual appraisal {year - 1}", period_start=dt.date(year - 1, 1, 1),
+                                          period_end=dt.date(year - 1, 12, 31), target_distribution=dist)
+        perf.launch_cycle(last, hrd)
+        for ap in last.appraisals.select_related("employee__job_title"):
+            setup_objectives(ap)
+            base = random.choice([2, 3, 3, 3, 4, 4, 5])
+            rate_all(ap, "self_rating", base)
+            rate_all(ap, "manager_rating", base)
+            ap.objectives_score, ap.competencies_score, ap.overall_score = perf._scores(ap)
+            ap.manager_rating = ap.final_rating = perf.rating_from_score(perf.scale_of(ap), ap.overall_score)
+            ap.manager_comments = "Solid year." if ap.final_rating >= 3 else "Below expectations on key objectives."
+            ap.development_needs = "Continue CPD; leadership short course." if ap.final_rating >= 3 else \
+                "Coaching on prioritisation; refresher training."
+            ap.status, ap.employee_agrees = "completed", True
+            ap.acknowledged_at = ap.completed_at = timezone.now() - dt.timedelta(days=200)
+            ap.save()
+        last.status, last.closed_at = "closed", timezone.now() - dt.timedelta(days=210)
+        last.save()
+
+        # this year: in year-end review
+        cur = ReviewCycle.objects.create(
+            name=f"Annual appraisal {year}", period_start=dt.date(year, 1, 1), period_end=dt.date(year, 12, 31),
+            goal_setting_deadline=dt.date(year, 2, 28), midyear_date=dt.date(year, 7, 31),
+            self_review_deadline=today + dt.timedelta(days=14), manager_review_deadline=today + dt.timedelta(days=28),
+            target_distribution=dist)
+        g_org = Goal.objects.create(cycle=cur, title="Improve patient satisfaction to 85%",
+                                    measure="Quarterly patient survey", target="85%")
+        g_ward = Goal.objects.create(cycle=cur, parent=g_org, department=ward,
+                                     title="Zero avoidable medication errors on Ward A", measure="Incident log",
+                                     target="0")
+        Goal.objects.create(cycle=cur, title="Keep staff costs within the approved budget", measure="Payroll vs budget",
+                            target="≤ 100%")
+        perf.launch_cycle(cur, hrd)
+        for ap in cur.appraisals.select_related("employee__department", "employee__job_title"):
+            setup_objectives(ap, g_ward if ap.employee.department_id == ward.id else g_org)
+            ap.status = "objectives_agreed"
+            ap.midyear_comments = "Mid-year discussion held; on track overall."
+            ap.midyear_done_at = timezone.make_aware(dt.datetime(year, 7, 20, 10))
+            ap.save()
+            for o in ap.objectives.all():
+                o.midyear_status = random.choice(["on_track", "on_track", "at_risk"])
+                o.save(update_fields=["midyear_status"])
+        cur.status = "in_progress"
+        cur.save()
+        perf.advance_cycle(cur, hrd)  # -> year-end review: everyone in self-assessment
+        # the ward manager's nurses (except the demo employee) have submitted self-assessments
+        demo_emp = User.objects.get(username="employee").employee
+        mgr = User.objects.get(username="manager")
+        for ap in cur.appraisals.filter(reviewer=mgr).exclude(employee=demo_emp)[:4]:
+            rate_all(ap, "self_rating", 4)
+            ap.self_comments = "Busy year on the ward; completed my CPD."
+            ap.status, ap.self_submitted_at = "manager_review", timezone.now() - dt.timedelta(days=2)
+            ap.save()
+        # 360 for a manager: the demo employee has a pending request
+        hrd_ap = cur.appraisals.filter(employee=hrd.employee).first()
+        if hrd_ap and hrd_ap.template.include_360:
+            for u in User.objects.filter(username__in=["employee", "hrofficer", "payroll", "approver"]):
+                FeedbackRequest.objects.create(appraisal=hrd_ap, respondent=u, relationship="peer")
+        # an improvement plan in draft for last year's lowest-rated nurse under the ward manager
+        low = last.appraisals.filter(reviewer=mgr, final_rating__lte=2).first()
+        if low:
+            plan = ImprovementPlan.objects.create(
+                employee=low.employee, appraisal=low, supervisor=mgr, start_date=today,
+                end_date=today + dt.timedelta(days=60), reason="Late completion of nursing documentation.",
+                support="Weekly coaching with the ward in-charge; documentation refresher course.", status="draft")
+            PlanMilestone.objects.create(plan=plan, objective="Complete shift documentation before handover",
+                                         measure="Chart audit", due_date=today + dt.timedelta(days=30))
+        self.stdout.write(f"Performance demo: {last.name} (closed) and {cur.name} "
+                          f"({Appraisal.objects.filter(cycle=cur).count()} appraisals in year-end review).")

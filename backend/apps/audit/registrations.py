@@ -62,6 +62,10 @@ AUDITED = {
     "recruitment.Offer": {"sensitive": ["basic_salary", "allowances"], "exclude": ["token", "letter"]},
     "onboarding.ChecklistTemplate": {},
     "onboarding.Onboarding": {},
+    "performance.ReviewCycle": {},
+    "performance.AppraisalTemplate": {},
+    "performance.Appraisal": {"sensitive": ["manager_comments", "calibration_reason", "employee_comments"]},
+    "performance.ImprovementPlan": {"sensitive": ["reason", "outcome_notes"]},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

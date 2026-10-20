@@ -172,6 +172,9 @@ def seed_workflows():
         ("job_offer", "Offer above budget", 50, {"field": "above_budget", "op": "eq", "value": True}, [
             (1, "HR Director approval", "role", hr_dir, 48, False),
             (2, "Finance (budget) approval", "role", Role.objects.get(code="finance_officer"), 48, False)]),
+        ("appraisal_objectives", "Objective agreement", 100, {}, [
+            (1, "Supervisor agreement", "supervisor", None, 120, False)]),
+        ("improvement_plan", "Performance improvement plan", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
         ("probation_outcome", "Probation confirmation", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
         ("probation_outcome", "Probation extension / termination", 50,
          {"field": "recommendation", "op": "in", "value": ["extend", "terminate"]}, [
@@ -407,6 +410,39 @@ def seed_onboarding():
                                              description=desc, form=form, is_mandatory=category != "survey")
 
 
+def seed_performance():
+    from apps.performance.models import DEFAULT_LEVELS, AppraisalTemplate, Competency, RatingScale
+
+    scale, _ = RatingScale.objects.get_or_create(name="5-point scale", defaults={"levels": DEFAULT_LEVELS,
+                                                                                 "is_default": True})
+    comps = [
+        ("core", "Integrity and professionalism", "Acts honestly, keeps confidences, follows the code of conduct."),
+        ("core", "Customer and patient focus", "Treats clients and patients with respect; responds promptly."),
+        ("core", "Teamwork and collaboration", "Shares information, supports colleagues, resolves conflict."),
+        ("core", "Communication", "Communicates clearly and respectfully, verbally and in writing."),
+        ("core", "Accountability and reliability", "Meets commitments, punctual, owns mistakes and fixes them."),
+        ("technical", "Job knowledge and skills", "Applies the knowledge, tools and procedures the role requires."),
+        ("technical", "Quality and accuracy of work", "Produces complete, accurate work that needs little rework."),
+        ("leadership", "Leading and developing people", "Sets direction, coaches, gives feedback, develops staff."),
+        ("leadership", "Planning and decision making", "Plans resources, prioritises and makes sound decisions."),
+        ("clinical", "Patient safety and infection control", "Follows safety protocols, IPC and medication safety."),
+        ("clinical", "Clinical documentation", "Keeps accurate, timely and complete patient records."),
+        ("clinical", "Clinical competence", "Delivers evidence-based care within scope of practice."),
+    ]
+    by_name = {}
+    for cat, name, desc in comps:
+        by_name[name], _ = Competency.objects.get_or_create(name=name, defaults={"category": cat, "description": desc})
+    core = [c for c in by_name.values() if c.category == "core"]
+    tpl, created = AppraisalTemplate.objects.get_or_create(name="Standard staff appraisal", defaults={
+        "rating_scale": scale, "objectives_weight": 70})
+    if created:
+        tpl.competencies.set(core + [by_name["Job knowledge and skills"], by_name["Quality and accuracy of work"]])
+    tpl, created = AppraisalTemplate.objects.get_or_create(name="Clinical staff appraisal", defaults={
+        "rating_scale": scale, "objectives_weight": 60, "clinical_only": True})
+    if created:
+        tpl.competencies.set(core + [c for c in by_name.values() if c.category == "clinical"])
+
+
 def seed_attendance():
     from apps.attendance.models import AttendancePolicy, Shift
 
@@ -447,6 +483,7 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         seed_servicedesk()
         seed_expenses_and_benefits()
         seed_onboarding()
+        seed_performance()
         year = dt.date.today().year
         seed_public_holidays(year)
         seed_public_holidays(year + 1)

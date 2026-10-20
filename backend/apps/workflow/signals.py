@@ -8,4 +8,5 @@ from apps.expenses import workflow_handlers as _expenses  # noqa: F401
 from apps.leave import workflow_handlers as _leave  # noqa: F401
 from apps.onboarding import workflow_handlers as _onboarding  # noqa: F401
 from apps.payroll import workflow_handlers as _payroll  # noqa: F401
+from apps.performance import workflow_handlers as _performance  # noqa: F401
 from apps.recruitment import workflow_handlers as _recruitment  # noqa: F401

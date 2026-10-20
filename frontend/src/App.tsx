@@ -88,6 +88,14 @@ const OnboardingDetail = lazy(() => import("./pages/onboarding/OnboardingDetail"
 const OnboardingSetup = lazy(() => import("./pages/onboarding/OnboardingSetup"));
 const OnboardingTasks = lazy(() => import("./pages/onboarding/MyTasks"));
 const Probation = lazy(() => import("./pages/onboarding/Probation"));
+const MyPerformance = lazy(() => import("./pages/performance/MyPerformance"));
+const TeamAppraisals = lazy(() => import("./pages/performance/TeamAppraisals"));
+const AppraisalDetail = lazy(() => import("./pages/performance/AppraisalDetail"));
+const PerfCycles = lazy(() => import("./pages/performance/Cycles"));
+const PerfCycleDetail = lazy(() => import("./pages/performance/CycleDetail"));
+const FeedbackRequests = lazy(() => import("./pages/performance/FeedbackRequests"));
+const Plans = lazy(() => import("./pages/performance/Plans"));
+const PerformanceSetup = lazy(() => import("./pages/performance/PerformanceSetup"));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
 
@@ -209,6 +217,14 @@ export default function App() {
           <Route path="onboarding/probation" element={<Probation />} />
           <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
           <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
+          <Route path="performance/my" element={<MyPerformance />} />
+          <Route path="performance/team" element={<TeamAppraisals />} />
+          <Route path="performance/appraisals/:id" element={<AppraisalDetail />} />
+          <Route path="performance/feedback" element={<FeedbackRequests />} />
+          <Route path="performance/plans" element={<Plans />} />
+          <Route path="performance/cycles" element={g(<PerfCycles />, "performance.manage")} />
+          <Route path="performance/cycles/:id" element={g(<PerfCycleDetail />, "performance.manage")} />
+          <Route path="performance/setup" element={g(<PerformanceSetup />, "performance.manage")} />
           <Route path="*" element={<Alert severity="info">Page not found.</Alert>} />
         </Route>
       </Routes>

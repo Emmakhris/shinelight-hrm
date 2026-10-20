@@ -25,6 +25,7 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
   - policy acknowledgment;
   - probation milestones and reviews;
   - new-hire surveys.
+- **Performance (delivered):** cycles, role-specific forms, cascading goals and objectives, competencies, self/manager/360 reviews, calibration, acknowledgment, improvement plans, merit link to salary reviews.
 - Deferred within recruitment: job-board posting integrations, CV parsing and AI-assisted matching (features.txt marks these as advanced).
 - **Performance:**
   - cycles, role-specific templates, cascading objectives and KPIs, competencies;

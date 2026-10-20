@@ -25,12 +25,29 @@ def q(x):
 
 
 # ------------------------------------------------------------------ salary review
-def guideline_for(cycle, employee):
+def _guideline_entry(cycle, employee):
+    """Most specific guideline for the employee's grade level and latest performance rating.
+    Entries may carry "rating" (e.g. {"min_level": 1, "max_level": 9, "rating": 5, "min": 8, "max": 12,
+    "default": 10}); entries without a rating apply to everyone in the grade band."""
+    from apps.performance.services import latest_rating
+
     level = employee.grade.level if employee.grade_id else 0
+    rating = latest_rating(employee, before=cycle.effective_date)
+    match = None
     for g in cycle.guidelines or []:
-        if g.get("min_level", 0) <= level <= g.get("max_level", 99):
-            return Decimal(str(g.get("min", 0))), Decimal(str(g.get("max", 100)))
-    return None
+        if not g.get("min_level", 0) <= level <= g.get("max_level", 99):
+            continue
+        if "rating" in g:
+            if rating is not None and int(g["rating"]) == rating:
+                return g
+        elif match is None:
+            match = g
+    return match
+
+
+def guideline_for(cycle, employee):
+    g = _guideline_entry(cycle, employee)
+    return (Decimal(str(g.get("min", 0))), Decimal(str(g.get("max", 100)))) if g else None
 
 
 def cycle_population(cycle):
@@ -51,9 +68,10 @@ def populate_cycle(cycle):
         raise BusinessRuleError("Proposals can only be prepared while the cycle is draft/open.")
     created = 0
     for emp in cycle_population(cycle):
+        g = _guideline_entry(cycle, emp)
+        default = Decimal(str(g["default"])) if g and "default" in g else cycle.default_increase_percent
         line, was_created = SalaryReviewLine.objects.get_or_create(
-            cycle=cycle, employee=emp,
-            defaults={"current_basic": emp.basic_salary, "increase_percent": cycle.default_increase_percent})
+            cycle=cycle, employee=emp, defaults={"current_basic": emp.basic_salary, "increase_percent": default})
         if was_created:
             recalc_line(line)
             created += 1

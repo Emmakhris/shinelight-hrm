@@ -45,6 +45,7 @@ class LineSerializer(TenantSerializer):
     department = serializers.CharField(source="employee.department.name", read_only=True, default=None)
     grade = serializers.CharField(source="employee.grade.code", read_only=True, default=None)
     guideline = serializers.SerializerMethodField()
+    performance_rating = serializers.SerializerMethodField()
 
     class Meta(TenantSerializer.Meta):
         model = SalaryReviewLine
@@ -54,6 +55,11 @@ class LineSerializer(TenantSerializer):
     def get_guideline(self, obj):
         g = services.guideline_for(obj.cycle, obj.employee)
         return {"min": g[0], "max": g[1]} if g else None
+
+    def get_performance_rating(self, obj):
+        from apps.performance.services import latest_rating
+
+        return latest_rating(obj.employee, before=obj.cycle.effective_date)
 
 
 class CycleViewSet(TenantModelViewSet):

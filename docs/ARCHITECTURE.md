@@ -38,6 +38,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `expenses` | Per diem, travel requests and advances, expense claims, budgets, settlement via payroll |
 | `compensation` | Salary review cycles, bonus schemes, benefit plans and enrolments, total rewards |
 | `recruitment` | Requisitions, vacancies, candidates, applications and stage history, interviews and scorecards, reference checks, offers, public career site and offer response endpoints (`/api/public/...`, no login, throttled), analytics |
+| `performance` | Rating scales, competencies, appraisal forms, review cycles and goals, appraisals with objectives and competency ratings, anonymous 360 feedback, calibration, improvement plans; `latest_rating()` feeds compensation merit guidelines |
 | `onboarding` | Checklist templates, onboarding records and tasks (auto-started by a `post_save` signal on new employees), probation reviews and outcome workflow |
 
 ## Key design decisions
@@ -64,3 +65,4 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | Scheduled reports | 06:00 |
 | Recruitment housekeeping: close expired vacancies, expire offers, anonymise candidates past retention | 00:30 |
 | Onboarding: overdue task escalation, probation review reminders | 07:15 |
+| Performance: deadline reminders, improvement plans ending in a week | 07:45 |

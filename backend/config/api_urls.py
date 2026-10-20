@@ -15,6 +15,7 @@ from apps.notifications import views as notif
 from apps.onboarding import views as onb
 from apps.organization import views as org
 from apps.payroll import views as pay
+from apps.performance import views as perf
 from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSet
 from apps.recruitment import views as rec
 from apps.reports import views as rep
@@ -95,6 +96,17 @@ router.register("onboarding/template-tasks", onb.TemplateTaskViewSet, basename="
 router.register("onboarding/tasks", onb.TaskViewSet, basename="onboarding-tasks")
 router.register("onboarding/probation", onb.ReviewViewSet, basename="probation-reviews")
 router.register("onboarding/records", onb.OnboardingViewSet, basename="onboardings")
+# performance
+router.register("performance/scales", perf.ScaleViewSet, basename="rating-scales")
+router.register("performance/competencies", perf.CompetencyViewSet, basename="competencies")
+router.register("performance/templates", perf.TemplateViewSet, basename="appraisal-templates")
+router.register("performance/cycles", perf.CycleViewSet, basename="review-cycles")
+router.register("performance/goals", perf.GoalViewSet, basename="goals")
+router.register("performance/appraisals", perf.AppraisalViewSet, basename="appraisals")
+router.register("performance/objectives", perf.ObjectiveViewSet, basename="objectives")
+router.register("performance/feedback", perf.FeedbackViewSet, basename="feedback")
+router.register("performance/plans", perf.PlanViewSet, basename="improvement-plans")
+router.register("performance/milestones", perf.MilestoneViewSet, basename="plan-milestones")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")

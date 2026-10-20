@@ -21,6 +21,7 @@ import PersonOutline from "@mui/icons-material/PersonOutline";
 import Savings from "@mui/icons-material/Savings";
 import Schedule from "@mui/icons-material/Schedule";
 import SupportAgent from "@mui/icons-material/SupportAgent";
+import TrendingUp from "@mui/icons-material/TrendingUp";
 import { AppBar, Avatar, Badge, Box, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon,
   ListItemText, ListSubheader, Menu as MuiMenu, MenuItem, Toolbar, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -49,6 +50,8 @@ const NAV: NavGroup[] = [
     { label: "Benefits & total rewards", to: "/me/benefits", employee: true },
     { label: "Loans & advances", to: "/me/loans", employee: true, feature: "payroll" },
     { label: "My requests", to: "/me/requests" },
+    { label: "My performance", to: "/performance/my", employee: true },
+    { label: "Feedback requests", to: "/performance/feedback" },
     { label: "Onboarding tasks", to: "/onboarding/my-tasks" },
     { label: "Interview panels", to: "/recruitment/my-interviews" },
     { label: "Internal job openings", to: "/me/jobs", employee: true },
@@ -61,6 +64,8 @@ const NAV: NavGroup[] = [
     { label: "Delegations", to: "/delegations", perm: ["leave.approve", "attendance.approve", "payroll.approve"] },
     { label: "Staff requisitions", to: "/recruitment/requisitions", perm: "recruitment.requisition" },
     { label: "Probation reviews", to: "/onboarding/probation", perm: ["leave.approve", "onboarding.view"] },
+    { label: "Team appraisals", to: "/performance/team", perm: ["leave.approve", "performance.manage"] },
+    { label: "Improvement plans", to: "/performance/plans", perm: ["leave.approve", "performance.manage"] },
   ] },
   { label: "Recruitment & onboarding", icon: <PersonAdd />, items: [
     { label: "Vacancies & pipeline", to: "/recruitment/vacancies", perm: "recruitment.view" },
@@ -69,6 +74,11 @@ const NAV: NavGroup[] = [
     { label: "Recruitment analytics", to: "/recruitment/analytics", perm: "recruitment.view" },
     { label: "Onboarding", to: "/onboarding", perm: "onboarding.view", scope: "organization" },
     { label: "Onboarding checklists", to: "/onboarding/setup", perm: "onboarding.manage" },
+  ] },
+  { label: "Performance", icon: <TrendingUp />, items: [
+    { label: "Review cycles & calibration", to: "/performance/cycles", perm: "performance.manage" },
+    { label: "Improvement plans", to: "/performance/plans", perm: "performance.manage" },
+    { label: "Forms, competencies & scales", to: "/performance/setup", perm: "performance.manage" },
   ] },
   { label: "HR service desk", icon: <SupportAgent />, items: [
     { label: "Ticket queue", to: "/helpdesk/queue", perm: ["servicedesk.agent", "servicedesk.manage"] },
