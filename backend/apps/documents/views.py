@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from apps.audit import services as audit
 from apps.core.exceptions import BusinessRuleError
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.employees.models import Employee
 from apps.rbac.services import can_access_employee, has_perm
@@ -35,7 +35,7 @@ class CategorySerializer(TenantSerializer):
 
 
 class VersionSerializer(TenantSerializer):
-    uploaded_by = serializers.CharField(source="created_by.__str__", read_only=True, default=None)
+    uploaded_by = DisplayField("created_by")
 
     class Meta(TenantSerializer.Meta):
         model = DocumentVersion
@@ -290,7 +290,7 @@ class LetterRequestViewSet(TenantModelViewSet):
 
 # ---------------------------------------------------------------- e-signature
 class SignerSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source="user.__str__", read_only=True)
+    user_name = DisplayField("user")
 
     class Meta:
         model = Signer
@@ -302,7 +302,7 @@ class SignatureRequestSerializer(serializers.ModelSerializer):
     signers = SignerSerializer(many=True, read_only=True)
     document_title = serializers.CharField(source="document.title", read_only=True)
     employee_name = serializers.CharField(source="document.employee.full_name", read_only=True, default=None)
-    created_by_name = serializers.CharField(source="created_by.__str__", read_only=True, default=None)
+    created_by_name = DisplayField("created_by")
 
     class Meta:
         model = SignatureRequest

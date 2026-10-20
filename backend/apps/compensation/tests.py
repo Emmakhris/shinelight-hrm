@@ -108,7 +108,8 @@ def test_esignature_flow(people, make_user):
     from django.core.files.base import ContentFile
 
     from apps.core.pdf import html_to_pdf
-    from apps.documents import esign, services as doc_services
+    from apps.documents import esign
+    from apps.documents import services as doc_services
     from apps.documents.models import Document, DocumentCategory
 
     user_a = people["user_a"]

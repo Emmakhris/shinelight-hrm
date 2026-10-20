@@ -2,7 +2,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.audit import services as audit
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.rbac.permissions import require
 
@@ -57,7 +57,7 @@ class RoleViewSet(TenantModelViewSet):
 
 class RoleAssignmentSerializer(TenantSerializer):
     role_name = serializers.CharField(source="role.name", read_only=True)
-    user_name = serializers.CharField(source="user.__str__", read_only=True)
+    user_name = DisplayField("user")
     effective_scope = serializers.CharField(read_only=True)
 
     class Meta(TenantSerializer.Meta):

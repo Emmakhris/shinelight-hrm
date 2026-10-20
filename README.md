@@ -5,7 +5,9 @@ Built for a single organization today; every record is tenant-scoped, so the sam
 
 **Stack:** Django 5 + Django REST Framework + PostgreSQL + Celery/Redis · React 18 + TypeScript + MUI (installable PWA) · Docker Compose.
 
-## What's in this release (Phase 1 + Payroll)
+## What's in this release
+
+### Phase 1 + Payroll
 
 | Area | Highlights |
 |---|---|
@@ -23,7 +25,19 @@ Built for a single organization today; every record is tenant-scoped, so the sam
 | **Hospital add-on** | Professional licence registry and verification; **rostering blocked when a licence or mandatory competency has lapsed**; competency matrix; ward staffing view |
 | **Integrations** | REST API (OpenAPI docs at `/api/docs/`), API keys, signed webhooks with retries |
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for Phases 2–4: service desk, recruitment, performance, LMS, succession and more.
+### Phase 2: Service delivery & rewards
+
+| Area | Highlights |
+|---|---|
+| **HR service desk** | Service catalogue with per-service request forms; tickets with a reference number, routed to the least-loaded agent in a team; response and resolution SLAs that pause while waiting on the employee; warnings and escalation; internal notes; confidential grievances; one-click letters from a ticket; knowledge base with suggestions while typing; reopen; satisfaction ratings; KPIs (SLA %, response/resolution times, backlog, CSAT, per agent) |
+| **Travel & expenses** | Per diem rates by destination and grade; travel requests with routing by destination (international adds HR Director approval); advances with a retirement deadline and reminders; expense claims with receipts (or a reason when one is missing) that retire advances; departmental budgets with warnings; settlement through payroll (reimbursement or recovery of an unspent advance) or by transfer. The claim's approver cannot pay it. |
+| **Compensation** | Salary review cycles with a budget and per-grade guidelines; justification required for out-of-guideline proposals; approval; applied as effective-dated salary changes (back-dated reviews produce arrears automatically). Bonus schemes (fixed, % of basic, months of basic) post to a payroll period with bonus-tax treatment. |
+| **Benefits** | Plans with eligibility (category, grade, service, employment type), dependants, approval, auto-enrolment; the employee share is deducted through payroll; cost and 12-month forecast; total rewards statement PDF |
+| **E-signature** | Sequential signing with consent, typed name, IP and timestamp. A SHA-256 check refuses signing if the document changed after it was sent. A signature certificate page is appended to the signed PDF, and every event is in the audit trail. A pluggable provider interface allows an external e-signature service later. |
+
+The workflow engine also skips a step when its only approver already approved an earlier step of the same request (e.g. a supervisor who is also head of department).
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for Phases 3–4: service desk, recruitment, performance, LMS, succession and more.
 
 ## Quick start (development)
 
@@ -59,9 +73,10 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 41 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance
+cd backend && .venv/Scripts/python -m pytest          # 57 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
+.venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits
 cd frontend && npm test && npx tsc --noEmit && npm run build
 ```
 

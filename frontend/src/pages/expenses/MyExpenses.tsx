@@ -38,7 +38,7 @@ export default function MyExpenses() {
           { key: "reference", label: "Ref" }, { key: "title", label: "Title" }, { key: "travel_reference", label: "Trip" },
           { key: "total", label: "Total", align: "right", render: (r) => fmtMoney(r.total) },
           { key: "net_payable", label: "Net", align: "right", render: (r) => fmtMoney(r.net_payable) },
-          { key: "payment_method", label: "Paid via" },
+          { key: "payment_method", label: "Paid via", render: (r) => ({ payroll: "Salary", bank: "Bank / MoMo", cash: "Petty cash" } as Record<string, string>)[r.payment_method] },
           { key: "status", label: "Status", render: (r) => <StatusChip value={r.status} /> }]} />
       </Section>
       <TravelDialog open={travel} onClose={() => setTravel(false)} />

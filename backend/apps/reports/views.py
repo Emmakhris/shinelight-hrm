@@ -1,5 +1,4 @@
 from django.utils import timezone
-from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +8,7 @@ from rest_framework.views import APIView
 from apps.audit import services as audit
 from apps.core.exceptions import BusinessRuleError
 from apps.core.exports import tabular_response
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.rbac.permissions import require
 from apps.rbac.services import has_perm
@@ -63,7 +62,7 @@ class RunReportView(APIView):
 
 
 class ExportRequestSerializer(TenantSerializer):
-    requested_by = serializers.CharField(source="created_by.__str__", read_only=True)
+    requested_by = DisplayField("created_by")
 
     class Meta(TenantSerializer.Meta):
         model = ExportRequest

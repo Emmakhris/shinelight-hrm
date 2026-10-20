@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.core.exceptions import BusinessRuleError
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.rbac.services import has_perm
 
@@ -26,7 +26,7 @@ User = get_user_model()
 
 class StepSerializer(TenantSerializer):
     role_name = serializers.CharField(source="role.name", read_only=True, default=None)
-    user_name = serializers.CharField(source="user.__str__", read_only=True, default=None)
+    user_name = DisplayField("user")
 
     class Meta(TenantSerializer.Meta):
         model = WorkflowStep
@@ -74,7 +74,7 @@ class StepViewSet(TenantModelViewSet):
 
 
 class ActionSerializer(serializers.ModelSerializer):
-    actor_name = serializers.CharField(source="actor.__str__", read_only=True, default="System")
+    actor_name = DisplayField("actor", fallback="System")
 
     class Meta:
         model = WorkflowAction
@@ -82,9 +82,9 @@ class ActionSerializer(serializers.ModelSerializer):
 
 
 class TaskBriefSerializer(serializers.ModelSerializer):
-    assignee_name = serializers.CharField(source="assignee.__str__", read_only=True)
+    assignee_name = DisplayField("assignee")
     step_name = serializers.CharField(source="step.name", read_only=True)
-    delegated_from_name = serializers.CharField(source="delegated_from.__str__", read_only=True, default=None)
+    delegated_from_name = DisplayField("delegated_from")
 
     class Meta:
         model = WorkflowTask
@@ -93,7 +93,7 @@ class TaskBriefSerializer(serializers.ModelSerializer):
 
 
 class InstanceSerializer(serializers.ModelSerializer):
-    initiator_name = serializers.CharField(source="initiator.__str__", read_only=True, default=None)
+    initiator_name = DisplayField("initiator")
     subject_name = serializers.CharField(source="subject_employee.full_name", read_only=True, default=None)
     request_type_label = serializers.SerializerMethodField()
     waiting_on = serializers.SerializerMethodField()
@@ -245,8 +245,8 @@ class InstanceViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class DelegationSerializer(TenantSerializer):
-    delegate_name = serializers.CharField(source="delegate.__str__", read_only=True)
-    delegator_name = serializers.CharField(source="delegator.__str__", read_only=True)
+    delegate_name = DisplayField("delegate")
+    delegator_name = DisplayField("delegator")
 
     class Meta(TenantSerializer.Meta):
         model = Delegation

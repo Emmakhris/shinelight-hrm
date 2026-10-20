@@ -10,6 +10,11 @@
 - **Wrong details?** My profile → *Request a correction*. HR verifies before it changes. Emergency contacts can be updated directly.
 - **Your data (Act 843):** My profile → *Download my data*.
 
+- **Help desk:** HR help desk → *New request*. Pick the service, and you'll see related knowledge-base articles. Track replies and rate the service when it's resolved.
+- **Travel:** Travel & expenses → *Request travel* (per diem is calculated for you). After the trip, submit an *expense claim* linked to the trip within 14 days; any unspent advance is recovered from your salary.
+- **Benefits:** Benefits & total rewards → enrol in eligible plans, add dependants, download your total rewards statement.
+- **Signatures:** Documents to sign → read the document, type your full name and confirm.
+
 ## Line managers / department heads
 
 - **Approvals inbox:** approve, return for correction (with a comment) or reject. Leave requests show the balance and any staffing clash.
@@ -24,6 +29,14 @@
 - **Exits:** *Record separation*. On the exit date the account is disabled, and retention dates are set.
 - **Letters:** employee record → *Generate letter*, or approve self-service letter requests in the inbox.
 - **Imports, data quality, leave adjustments, holidays and policies** are under People, Leave and Settings.
+
+## HR service desk agents
+
+Work the **Ticket queue** by due time. *Ask employee for information* pauses the SLA clock. Use internal notes for anything the employee must not see, *Generate letter* when the service has a template, and *Resolve* with a clear resolution. Log phone and walk-in requests on the employee's behalf.
+
+## Finance (travel & expenses)
+
+After the inbox approvals, open **Travel & claims admin**. Use *Pay advance* to record the transfer and *Settle* to close a claim, either with the next salary (reimbursement or recovery) or by transfer with a reference. You cannot settle a claim you approved.
 
 ## Payroll officer (preparer)
 

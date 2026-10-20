@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.audit import services as audit
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 
 from .models import EVENTS, ApiKey, Webhook, WebhookDelivery
@@ -11,7 +11,7 @@ from .services import deliver
 
 
 class ApiKeySerializer(TenantSerializer):
-    service_user_name = serializers.CharField(source="service_user.__str__", read_only=True)
+    service_user_name = DisplayField("service_user")
 
     class Meta(TenantSerializer.Meta):
         model = ApiKey

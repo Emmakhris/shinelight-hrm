@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.core.serializers import SensitiveFieldsMixin, TenantSerializer
+from apps.core.serializers import DisplayField, SensitiveFieldsMixin, TenantSerializer
 
 from .models import (
     BankAccount,
@@ -100,7 +100,7 @@ class EmploymentRecordSerializer(SensitiveFieldsMixin, TenantSerializer):
     job_title_name = serializers.CharField(source="job_title.name", read_only=True, default=None)
     grade_code = serializers.CharField(source="grade.code", read_only=True, default=None)
     supervisor_name = serializers.CharField(source="supervisor.full_name", read_only=True, default=None)
-    approved_by_name = serializers.CharField(source="approved_by.__str__", read_only=True, default=None)
+    approved_by_name = DisplayField("approved_by")
 
     class Meta(TenantSerializer.Meta):
         model = EmploymentRecord
@@ -191,7 +191,7 @@ class QualificationSerializer(TenantSerializer):
 
 class ConcurrentAssignmentSerializer(SensitiveFieldsMixin, TenantSerializer):
     sensitive_fields = {"allowance_amount": SALARY}
-    position_label = serializers.CharField(source="position.__str__", read_only=True)
+    position_label = DisplayField("position")
 
     class Meta(TenantSerializer.Meta):
         model = ConcurrentAssignment

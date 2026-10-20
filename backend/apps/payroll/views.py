@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from apps.audit import services as audit
 from apps.core.exceptions import BusinessRuleError
 from apps.core.exports import tabular_response
-from apps.core.serializers import SensitiveFieldsMixin, TenantSerializer
+from apps.core.serializers import DisplayField, SensitiveFieldsMixin, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.employees.models import Employee
 from apps.rbac.services import can_access_employee, has_perm
@@ -237,9 +237,9 @@ class RunSerializer(TenantSerializer):
     pay_date = serializers.DateField(source="period.pay_date", read_only=True)
     run_type_label = serializers.CharField(source="get_run_type_display", read_only=True)
     status_label = serializers.CharField(source="get_status_display", read_only=True)
-    calculated_by_name = serializers.CharField(source="calculated_by.__str__", read_only=True, default=None)
-    approved_by_name = serializers.CharField(source="approved_by.__str__", read_only=True, default=None)
-    released_by_name = serializers.CharField(source="released_by.__str__", read_only=True, default=None)
+    calculated_by_name = DisplayField("calculated_by")
+    approved_by_name = DisplayField("approved_by")
+    released_by_name = DisplayField("released_by")
 
     class Meta(TenantSerializer.Meta):
         model = PayrollRun

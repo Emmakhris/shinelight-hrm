@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.core.exceptions import BusinessRuleError
-from apps.core.serializers import TenantSerializer
+from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
 from apps.rbac.services import has_perm
 
@@ -99,7 +99,7 @@ class ArticleViewSet(CatalogueViewSet):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source="author.__str__", read_only=True)
+    author_name = DisplayField("author")
     is_staff_reply = serializers.SerializerMethodField()
 
     class Meta:
@@ -111,7 +111,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    actor_name = serializers.CharField(source="actor.__str__", read_only=True, default="System")
+    actor_name = DisplayField("actor", fallback="System")
 
     class Meta:
         model = TicketEvent
@@ -121,8 +121,8 @@ class EventSerializer(serializers.ModelSerializer):
 class TicketSerializer(TenantSerializer):
     service_name = serializers.CharField(source="service_type.name", read_only=True)
     category_name = serializers.CharField(source="service_type.category.name", read_only=True)
-    requester_name = serializers.CharField(source="requester.__str__", read_only=True)
-    assignee_name = serializers.CharField(source="assignee.__str__", read_only=True, default=None)
+    requester_name = DisplayField("requester")
+    assignee_name = DisplayField("assignee")
     employee_name = serializers.CharField(source="employee.full_name", read_only=True, default=None)
     is_overdue = serializers.SerializerMethodField()
 

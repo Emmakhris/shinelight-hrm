@@ -31,6 +31,12 @@ ENDPOINTS = [
     "admin/login-attempts/", "organization/", "audit/logs/", "audit/logs/verify/", "audit/logs/access-review/",
     "integrations/webhooks/", "integrations/api-keys/", "hospital/licenses/", "hospital/credentials/",
     "hospital/competency-requirements/", "users/lookup/",
+    # phase 2
+    "helpdesk/categories/", "helpdesk/services/", "helpdesk/articles/", "helpdesk/articles/suggest/?q=payslip+password",
+    "helpdesk/tickets/", "helpdesk/tickets/?view=open", "helpdesk/tickets/metrics/", "helpdesk/tickets/agents/",
+    "expenses/per-diem/", "expenses/budgets/", "expenses/travel/", "expenses/travel/outstanding-advances/",
+    "expenses/claims/", "compensation/reviews/", "compensation/bonus-schemes/", "benefits/plans/", "benefits/plans/cost/",
+    "benefits/enrollments/", "compensation/total-rewards/", "documents/signatures/", "documents/signatures/my-tasks/",
 ]
 
 failures = 0

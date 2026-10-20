@@ -1,9 +1,9 @@
 # Roadmap
 
-Delivered: **Phase 1 + Payroll** (see README). Each later module plugs into the existing employee master, workflow engine,
+Delivered: **Phase 1 + Payroll** and **Phase 2** (service desk, travel & expenses, compensation & benefits, e-signature). See the README. Each later module plugs into the existing employee master, workflow engine,
 notifications, documents, RBAC and audit, so none needs new infrastructure.
 
-## Phase 2: Service delivery & rewards
+## Phase 2: Service delivery & rewards (delivered)
 
 - **HR service desk:**
   - service catalogue, tickets with reference numbers, routing, priority/SLA and escalation;

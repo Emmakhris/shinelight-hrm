@@ -110,3 +110,22 @@ def test_budget_warning(setup):
                        departure_date=dep, return_date=dep, transport_estimate=D("400"))
     services.compute_travel(tr)
     assert any("budget" in w for w in tr.warnings)
+
+
+def test_same_approver_not_asked_twice(setup):
+    """Supervisor who is also head of department approves once; the duplicate step is skipped."""
+    from apps.expenses import services
+    from apps.expenses.models import TravelRequest
+    from apps.workflow.models import WorkflowTask
+
+    dept = setup["emp"].department
+    dept.head = setup["emp"].supervisor
+    dept.save()
+    dep = dt.date.today() + dt.timedelta(days=5)
+    tr = TravelRequest.objects.create(employee=setup["emp"], purpose="x", destination="Ho", destination_class="national",
+                                      departure_date=dep, return_date=dep)
+    services.submit_travel(tr, setup["user"])
+    approve_all(setup["mgr_user"], "travel_request")
+    tr.refresh_from_db()
+    assert tr.status == "approved"
+    assert not WorkflowTask.objects.filter(status="pending", instance__request_type="travel_request").exists()

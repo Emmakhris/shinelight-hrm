@@ -57,3 +57,21 @@ class TenantSerializer(serializers.ModelSerializer):
     class Meta:
         exclude = ["organization"]
         read_only_fields = ["created_at", "updated_at", "created_by"]
+
+
+class DisplayField(serializers.Field):
+    """Read-only display name of a related object: str(obj), or `fallback` when the relation is empty.
+    (Using `source="rel.__str__"` breaks when rel is None.)"""
+
+    def __init__(self, source, fallback=None, **kwargs):
+        self.fallback = fallback
+        super().__init__(source=source, read_only=True, **kwargs)
+
+    def get_attribute(self, instance):
+        obj = instance
+        for part in self.source.split("."):
+            obj = getattr(obj, part, None) if obj is not None else None
+        return str(obj) if obj is not None else self.fallback
+
+    def to_representation(self, value):
+        return value

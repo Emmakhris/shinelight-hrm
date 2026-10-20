@@ -141,6 +141,12 @@ def _create_tasks_for_order(instance: WorkflowInstance, order: int) -> int:
             _record(instance, "step_skipped", comment=f"{step.name}: condition not met")
             continue
         approvers = [u for u in resolve_approvers(step, employee) if u != instance.initiator]
+        # Don't ask the same person twice: drop approvers who already approved an earlier step of this request.
+        already = set(instance.tasks.filter(status="approved").values_list("acted_by_id", flat=True))
+        if approvers and all(u.id in already for u in approvers):
+            _record(instance, "step_skipped", comment=f"{step.name}: already approved by {approvers[0]}")
+            continue
+        approvers = [u for u in approvers if u.id not in already]
         if not approvers:
             if step.skip_if_no_approver:
                 _record(instance, "step_skipped", comment=f"{step.name}: no eligible approver")
