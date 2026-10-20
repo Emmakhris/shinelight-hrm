@@ -1,0 +1,41 @@
+import os
+
+from celery import Celery
+from celery.schedules import crontab
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+app = Celery("shinelight")
+app.config_from_object("django.conf:settings", namespace="CELERY")
+app.autodiscover_tasks()
+
+app.conf.beat_schedule = {
+    "workflow-sla-escalations": {
+        "task": "apps.workflow.tasks.process_sla_escalations",
+        "schedule": crontab(minute="*/15"),
+    },
+    "leave-monthly-accrual": {
+        "task": "apps.leave.tasks.run_monthly_accrual",
+        "schedule": crontab(hour=1, minute=0, day_of_month=1),
+    },
+    "attendance-device-sync": {
+        "task": "apps.attendance.tasks.sync_all_devices",
+        "schedule": crontab(minute="*/10"),
+    },
+    "attendance-daily-processing": {
+        "task": "apps.attendance.tasks.process_previous_day",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "expiry-reminders": {
+        "task": "apps.notifications.tasks.send_expiry_reminders",
+        "schedule": crontab(hour=7, minute=0),
+    },
+    "webhook-retries": {
+        "task": "apps.integrations.tasks.retry_failed_deliveries",
+        "schedule": crontab(minute="*/5"),
+    },
+    "scheduled-reports": {
+        "task": "apps.reports.tasks.send_scheduled_reports",
+        "schedule": crontab(hour=6, minute=0),
+    },
+}

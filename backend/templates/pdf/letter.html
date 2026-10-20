@@ -1,0 +1,25 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>{{ css|safe }}</style>
+</head>
+<body>
+  <div class="header">
+    <table>
+      <tr>
+        <td><h2>{{ organization.legal_name|default:organization.name }}</h2>
+          <div class="muted">{{ organization.address|linebreaksbr }}</div>
+        </td>
+        <td class="right muted">
+          {% if organization.phone %}Tel: {{ organization.phone }}<br>{% endif %}
+          {% if organization.email %}{{ organization.email }}<br>{% endif %}
+          {% if organization.website %}{{ organization.website }}{% endif %}
+        </td>
+      </tr>
+    </table>
+  </div>
+  {% if reference %}<p class="muted">Ref: {{ reference }}</p>{% endif %}
+  <p>{{ today|date:"jS F, Y" }}</p>
+  {{ body|safe }}
+</body>
+</html>

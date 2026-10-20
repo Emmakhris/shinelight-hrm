@@ -1,0 +1,133 @@
+from django.urls import path
+from rest_framework.routers import DefaultRouter
+
+from apps.accounts.admin_views import LoginAttemptViewSet, UserLookupViewSet, UserViewSet
+from apps.attendance import views as att
+from apps.audit.views import AuditLogViewSet
+from apps.documents import views as docs
+from apps.employees import views as emp
+from apps.hospital import views as hosp
+from apps.integrations import views as integ
+from apps.leave import views as leave
+from apps.notifications import views as notif
+from apps.organization import views as org
+from apps.payroll import views as pay
+from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSet
+from apps.reports import views as rep
+from apps.selfservice import views as me
+from apps.tenancy import views as ten
+from apps.workflow import views as wf
+
+router = DefaultRouter()
+# administration
+router.register("admin/users", UserViewSet, basename="users")
+router.register("admin/login-attempts", LoginAttemptViewSet, basename="login-attempts")
+router.register("users/lookup", UserLookupViewSet, basename="user-lookup")
+router.register("admin/permissions", PermissionViewSet, basename="permissions")
+router.register("admin/roles", RoleViewSet, basename="roles")
+router.register("admin/role-assignments", RoleAssignmentViewSet, basename="role-assignments")
+router.register("admin/holidays", ten.HolidayViewSet, basename="holidays")
+router.register("admin/number-sequences", ten.NumberSequenceViewSet, basename="number-sequences")
+router.register("admin/custom-fields", ten.CustomFieldViewSet, basename="custom-fields")
+router.register("admin/config-changes", ten.ConfigChangeViewSet, basename="config-changes")
+router.register("audit/logs", AuditLogViewSet, basename="audit")
+# organization
+router.register("org/branches", org.BranchViewSet, basename="branches")
+router.register("org/locations", org.LocationViewSet, basename="locations")
+router.register("org/cost-centers", org.CostCenterViewSet, basename="cost-centers")
+router.register("org/departments", org.DepartmentViewSet, basename="departments")
+router.register("org/job-families", org.JobFamilyViewSet, basename="job-families")
+router.register("org/grades", org.GradeViewSet, basename="grades")
+router.register("org/grade-steps", org.GradeStepViewSet, basename="grade-steps")
+router.register("org/job-titles", org.JobTitleViewSet, basename="job-titles")
+router.register("org/positions", org.PositionViewSet, basename="positions")
+router.register("org/chart", org.OrgChartViewSet, basename="org-chart")
+# employees
+router.register("employees/categories", emp.CategoryViewSet, basename="categories")
+router.register("employees/contracts", emp.ContractViewSet, basename="contracts")
+router.register("employees/emergency-contacts", emp.EmergencyContactViewSet, basename="emergency-contacts")
+router.register("employees/beneficiaries", emp.BeneficiaryViewSet, basename="beneficiaries")
+router.register("employees/bank-accounts", emp.BankAccountViewSet, basename="bank-accounts")
+router.register("employees/qualifications", emp.QualificationViewSet, basename="qualifications")
+router.register("employees/concurrent-assignments", emp.ConcurrentAssignmentViewSet, basename="concurrent")
+router.register("employees/change-requests", emp.ChangeRequestViewSet, basename="change-requests")
+router.register("employees/consents", emp.DataConsentViewSet, basename="consents")
+router.register("directory", emp.DirectoryViewSet, basename="directory")
+router.register("employees", emp.EmployeeViewSet, basename="employees")
+# documents
+router.register("documents/categories", docs.CategoryViewSet, basename="doc-categories")
+router.register("documents/templates", docs.LetterTemplateViewSet, basename="letter-templates")
+router.register("documents/letter-requests", docs.LetterRequestViewSet, basename="letter-requests")
+router.register("documents", docs.DocumentViewSet, basename="documents")
+# workflow
+router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
+router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
+router.register("workflow/inbox", wf.InboxViewSet, basename="wf-inbox")
+router.register("workflow/requests", wf.InstanceViewSet, basename="wf-requests")
+router.register("workflow/delegations", wf.DelegationViewSet, basename="wf-delegations")
+# notifications
+router.register("notifications/templates", notif.TemplateViewSet, basename="notif-templates")
+router.register("notifications/deliveries", notif.DeliveryLogViewSet, basename="notif-deliveries")
+router.register("notifications", notif.NotificationViewSet, basename="notifications")
+router.register("announcements", notif.AnnouncementViewSet, basename="announcements")
+# leave
+router.register("leave/types", leave.LeaveTypeViewSet, basename="leave-types")
+router.register("leave/policies", leave.LeavePolicyViewSet, basename="leave-policies")
+router.register("leave/requests", leave.LeaveRequestViewSet, basename="leave-requests")
+# attendance
+router.register("attendance/shifts", att.ShiftViewSet, basename="shifts")
+router.register("attendance/policies", att.PolicyViewSet, basename="attendance-policies")
+router.register("attendance/patterns", att.PatternViewSet, basename="shift-patterns")
+router.register("attendance/devices", att.DeviceViewSet, basename="devices")
+router.register("attendance/enrollments", att.EnrollmentViewSet, basename="enrollments")
+router.register("attendance/roster", att.RosterViewSet, basename="roster")
+router.register("attendance/days", att.DayViewSet, basename="attendance-days")
+router.register("attendance/corrections", att.CorrectionViewSet, basename="corrections")
+router.register("attendance/summaries", att.SummaryViewSet, basename="attendance-summaries")
+# payroll
+router.register("payroll/pay-groups", pay.PayGroupViewSet, basename="pay-groups")
+router.register("payroll/rate-sets", pay.RateSetViewSet, basename="rate-sets")
+router.register("payroll/tax-tables", pay.TaxTableViewSet, basename="tax-tables")
+router.register("payroll/reliefs", pay.ReliefViewSet, basename="reliefs")
+router.register("payroll/relief-claims", pay.ReliefClaimViewSet, basename="relief-claims")
+router.register("payroll/elements", pay.ElementViewSet, basename="pay-elements")
+router.register("payroll/profiles", pay.PayProfileViewSet, basename="pay-profiles")
+router.register("payroll/employee-elements", pay.EmployeeElementViewSet, basename="employee-elements")
+router.register("payroll/periods", pay.PeriodViewSet, basename="periods")
+router.register("payroll/adjustments", pay.AdjustmentViewSet, basename="adjustments")
+router.register("payroll/runs", pay.RunViewSet, basename="runs")
+router.register("payroll/payslips", pay.PayslipViewSet, basename="payslips")
+router.register("payroll/loans", pay.LoanViewSet, basename="loans")
+router.register("payroll/simulate", pay.SimulateViewSet, basename="simulate")
+# reports
+router.register("reports/export-requests", rep.ExportRequestViewSet, basename="export-requests")
+router.register("reports/scheduled", rep.ScheduledReportViewSet, basename="scheduled-reports")
+# integrations
+router.register("integrations/api-keys", integ.ApiKeyViewSet, basename="api-keys")
+router.register("integrations/webhooks", integ.WebhookViewSet, basename="webhooks")
+# hospital add-on
+router.register("hospital/licenses", hosp.LicenseViewSet, basename="licenses")
+router.register("hospital/competency-requirements", hosp.RequirementViewSet, basename="competency-requirements")
+router.register("hospital/competency-records", hosp.RecordViewSet, basename="competency-records")
+router.register("hospital/credentials", hosp.CredentialViewSet, basename="credentials")
+# self-service
+router.register("me/change-requests", me.ChangeRequestViewSet, basename="me-change-requests")
+router.register("me/emergency-contacts", me.EmergencyContactViewSet, basename="me-emergency-contacts")
+router.register("me/beneficiaries", me.BeneficiaryViewSet, basename="me-beneficiaries")
+
+urlpatterns = [
+    path("organization/", ten.OrganizationView.as_view()),
+    path("organization/features/", ten.FeatureToggleView.as_view()),
+    path("attendance/clock/", att.ClockView.as_view()),
+    path("attendance/team-today/", att.TeamTodayView.as_view()),
+    path("reports/dashboard/", rep.DashboardView.as_view()),
+    path("reports/analytics/", rep.AnalyticsView.as_view()),
+    path("reports/catalog/", rep.ReportCatalogView.as_view()),
+    path("reports/run/<str:code>/", rep.RunReportView.as_view()),
+    path("me/profile/", me.ProfileView.as_view()),
+    path("me/summary/", me.SummaryView.as_view()),
+    path("me/documents/", me.MyDocumentsView.as_view()),
+    path("me/letters/", me.MyLettersView.as_view()),
+    path("me/team/", me.MyTeamView.as_view()),
+    path("me/data-export/", me.MyDataExportView.as_view()),
+] + router.urls

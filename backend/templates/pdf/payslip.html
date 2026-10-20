@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{{ css|safe }}
+.box { border: 0.5pt solid #d1d5db; padding: 6pt; }
+.section th { background: #0f3d5e; color: #ffffff; text-align: left; }
+.total td { font-weight: bold; border-top: 1pt solid #0f3d5e; }
+.net { font-size: 14pt; font-weight: bold; color: #0f3d5e; }
+</style>
+</head>
+<body>
+<div class="header">
+  <table>
+    <tr>
+      <td><h2>{{ org.legal_name|default:org.name }}</h2><div class="muted">{{ org.address|linebreaksbr }}</div></td>
+      <td class="right"><h3>PAYSLIP</h3><div>{{ run.period.name }}</div>
+        <div class="muted">Pay date: {{ run.period.pay_date|date:"d/m/Y" }}</div></td>
+    </tr>
+  </table>
+</div>
+
+<table class="box">
+  <tr>
+    <td><b>Name:</b> {{ slip.employee_name }}</td>
+    <td><b>Staff No:</b> {{ slip.staff_number }}</td>
+    <td><b>Department:</b> {{ slip.department }}</td>
+  </tr>
+  <tr>
+    <td><b>Position:</b> {{ slip.job_title }}</td>
+    <td><b>Grade:</b> {{ slip.grade }}</td>
+    <td><b>SSNIT No:</b> {{ slip.ssnit_number }}</td>
+  </tr>
+  <tr>
+    <td><b>TIN:</b> {{ slip.tin }}</td>
+    <td><b>Payment:</b> {{ slip.bank_name }} {% if slip.account_last4 %}****{{ slip.account_last4 }}{% endif %}</td>
+    <td><b>Days paid:</b> {{ slip.days_payable }} / {{ slip.days_in_period }}</td>
+  </tr>
+</table>
+<br>
+<table>
+  <tr>
+    <td style="width:50%; vertical-align: top;">
+      <table class="section border">
+        <tr><th>Earnings</th><th class="right">GHS</th></tr>
+        {% for l in earnings %}<tr><td>{{ l.name }}{% if l.quantity and l.code != "BASIC" %} ({{ l.quantity }}){% endif %}</td><td class="right">{{ l.amount|floatformat:2 }}</td></tr>{% endfor %}
+        <tr class="total"><td>Gross pay</td><td class="right">{{ slip.gross_pay|floatformat:2 }}</td></tr>
+      </table>
+    </td>
+    <td style="width:50%; vertical-align: top;">
+      <table class="section border">
+        <tr><th>Deductions</th><th class="right">GHS</th></tr>
+        {% for l in deductions %}<tr><td>{{ l.name }}</td><td class="right">{{ l.amount|floatformat:2 }}</td></tr>{% endfor %}
+        <tr class="total"><td>Total deductions</td><td class="right">{{ slip.total_deductions|floatformat:2 }}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<br>
+<table class="box">
+  <tr>
+    <td class="net">NET PAY: GHS {{ slip.net_pay|floatformat:2 }}</td>
+    <td class="right muted">Chargeable income: {{ slip.taxable_income|floatformat:2 }}<br>
+      Tax reliefs (monthly): {{ slip.reliefs|floatformat:2 }}</td>
+  </tr>
+</table>
+<br>
+<table class="section border">
+  <tr><th>Employer contributions</th><th class="right">GHS</th><th>Year to date</th><th class="right">GHS</th></tr>
+  <tr><td>SSNIT employer</td><td class="right">{{ slip.ssnit_employer|floatformat:2 }}</td>
+      <td>Gross pay</td><td class="right">{{ slip.ytd.gross }}</td></tr>
+  <tr><td>Tier 1 (to SSNIT)</td><td class="right">{{ slip.tier1|floatformat:2 }}</td>
+      <td>Tax paid</td><td class="right">{{ slip.ytd.paye }}</td></tr>
+  <tr><td>Tier 2 (to trustee)</td><td class="right">{{ slip.tier2|floatformat:2 }}</td>
+      <td>SSNIT (employee)</td><td class="right">{{ slip.ytd.ssnit }}</td></tr>
+  {% for l in employer %}{% if l.code != "SSNIT_ER" %}<tr><td>{{ l.name }}</td><td class="right">{{ l.amount|floatformat:2 }}</td><td></td><td></td></tr>{% endif %}{% endfor %}
+  <tr><td></td><td></td><td>Net pay</td><td class="right">{{ slip.ytd.net }}</td></tr>
+</table>
+<p class="muted">This is a computer-generated payslip and does not require a signature. Report discrepancies to the Payroll Unit within 7 days.</p>
+</body>
+</html>

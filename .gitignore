@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+backend/media/
+backend/staticfiles/
+backend/db.sqlite3
+.pytest_cache/
+.ruff_cache/
+# Node
+node_modules/
+frontend/dist/
+# Env
+.env
+*.log
