@@ -34,6 +34,11 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `reports` | Dashboard, analytics with KPI definitions, report catalogue, export approvals, scheduled reports |
 | `integrations` | API keys, webhooks, deliveries with retry |
 | `hospital` | Licences, competency requirements/records, credential checks used by rostering |
+| `servicedesk` | Service catalogue, tickets with SLA pause/escalation, knowledge base, CSAT, KPIs |
+| `expenses` | Per diem, travel requests and advances, expense claims, budgets, settlement via payroll |
+| `compensation` | Salary review cycles, bonus schemes, benefit plans and enrolments, total rewards |
+| `recruitment` | Requisitions, vacancies, candidates, applications and stage history, interviews and scorecards, reference checks, offers, public career site and offer response endpoints (`/api/public/...`, no login, throttled), analytics |
+| `onboarding` | Checklist templates, onboarding records and tasks (auto-started by a `post_save` signal on new employees), probation reviews and outcome workflow |
 
 ## Key design decisions
 
@@ -57,3 +62,5 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | Monthly leave accrual and carry-over expiry | 1st of month 01:00 |
 | Webhook retries | every 5 min |
 | Scheduled reports | 06:00 |
+| Recruitment housekeeping: close expired vacancies, expire offers, anonymise candidates past retention | 00:30 |
+| Onboarding: overdue task escalation, probation review reminders | 07:15 |

@@ -23,4 +23,7 @@ export const STATUS_COLORS: Record<string, "default" | "primary" | "success" | "
   rejected: "error", error: "error", absent: "error", exited: "default", cancelled: "default", reversed: "default",
   incomplete: "error", failed: "error", expired: "error", missing: "error", hold: "warning", recalled: "info",
   on_leave: "info", holiday: "info", off: "default", suspended: "error",
+  published: "success", filled: "success", accepted: "success", verified: "success", done: "success", hired: "success",
+  scheduled: "info", negotiating: "warning", concerns: "warning", shortlisted: "info", interview: "info", offer: "info",
+  declined: "error", withdrawn: "default", superseded: "default", waived: "default", closed: "default",
 };

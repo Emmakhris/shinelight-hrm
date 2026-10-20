@@ -16,6 +16,7 @@ import Logout from "@mui/icons-material/Logout";
 import Menu from "@mui/icons-material/Menu";
 import NotificationsOutlined from "@mui/icons-material/NotificationsOutlined";
 import Payments from "@mui/icons-material/Payments";
+import PersonAdd from "@mui/icons-material/PersonAdd";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import Savings from "@mui/icons-material/Savings";
 import Schedule from "@mui/icons-material/Schedule";
@@ -48,6 +49,9 @@ const NAV: NavGroup[] = [
     { label: "Benefits & total rewards", to: "/me/benefits", employee: true },
     { label: "Loans & advances", to: "/me/loans", employee: true, feature: "payroll" },
     { label: "My requests", to: "/me/requests" },
+    { label: "Onboarding tasks", to: "/onboarding/my-tasks" },
+    { label: "Interview panels", to: "/recruitment/my-interviews" },
+    { label: "Internal job openings", to: "/me/jobs", employee: true },
     { label: "Staff directory", to: "/directory" },
     { label: "Announcements & policies", to: "/announcements" },
   ] },
@@ -55,6 +59,16 @@ const NAV: NavGroup[] = [
     { label: "My team", to: "/team", perm: ["leave.approve", "attendance.approve"] },
     { label: "Team attendance today", to: "/attendance/team", perm: "attendance.approve" },
     { label: "Delegations", to: "/delegations", perm: ["leave.approve", "attendance.approve", "payroll.approve"] },
+    { label: "Staff requisitions", to: "/recruitment/requisitions", perm: "recruitment.requisition" },
+    { label: "Probation reviews", to: "/onboarding/probation", perm: ["leave.approve", "onboarding.view"] },
+  ] },
+  { label: "Recruitment & onboarding", icon: <PersonAdd />, items: [
+    { label: "Vacancies & pipeline", to: "/recruitment/vacancies", perm: "recruitment.view" },
+    { label: "Requisitions", to: "/recruitment/requisitions", perm: "recruitment.view" },
+    { label: "Candidates & talent pool", to: "/recruitment/candidates", perm: "recruitment.view" },
+    { label: "Recruitment analytics", to: "/recruitment/analytics", perm: "recruitment.view" },
+    { label: "Onboarding", to: "/onboarding", perm: "onboarding.view", scope: "organization" },
+    { label: "Onboarding checklists", to: "/onboarding/setup", perm: "onboarding.manage" },
   ] },
   { label: "HR service desk", icon: <SupportAgent />, items: [
     { label: "Ticket queue", to: "/helpdesk/queue", perm: ["servicedesk.agent", "servicedesk.manage"] },

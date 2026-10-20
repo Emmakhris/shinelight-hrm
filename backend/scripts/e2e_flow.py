@@ -8,6 +8,7 @@ Usage: python scripts/e2e_flow.py [base_url]
 
 import datetime as dt
 import sys
+import time
 
 import requests
 
@@ -19,7 +20,11 @@ def session(user):
     s = requests.Session()
     s.get(f"{BASE}/api/auth/csrf/")
     s.headers["X-CSRFToken"] = s.cookies.get("csrftoken", "")
-    r = s.post(f"{BASE}/api/auth/login/", json={"username": user, "password": PASSWORD})
+    for _ in range(10):  # the login endpoint is rate limited (10/min); wait it out
+        r = s.post(f"{BASE}/api/auth/login/", json={"username": user, "password": PASSWORD})
+        if r.status_code != 429:
+            break
+        time.sleep(int(r.headers.get("Retry-After", "10")) + 1)
     assert r.status_code == 200, r.text
     s.headers["X-CSRFToken"] = s.cookies.get("csrftoken", "")
     return s
@@ -57,7 +62,7 @@ hr = session("hrofficer")
 print("hr approved:", approve_all(hr, "leave_request"))
 after = next(b for b in ok(emp.get(f"{BASE}/api/leave/requests/balances/")) if b["code"] == "annual")
 print(f"annual leave available: {before['available']} -> {after['available']}")
-assert float(after["available"]) == float(before["available"]) - 3
+assert float(after["available"]) == float(before["available"]) - float(req["days"])  # holidays are not charged
 
 pay = session("payroll")
 group = ok(pay.get(f"{BASE}/api/payroll/pay-groups/"))[0]
@@ -76,12 +81,15 @@ if run["status"] in ("draft", "calculated", "rejected"):
     r = pay.post(f"{BASE}/api/payroll/runs/{run['id']}/release/")
     assert r.status_code == 403, f"preparer must not release: {r.status_code}"
 appr = session("approver")
-print("payroll approved:", approve_all(appr, "payroll_run"))
+already = run["status"] in ("released", "paid", "locked")  # re-running in a month whose payroll is closed
+if not already:
+    print("payroll approved:", approve_all(appr, "payroll_run"))
 for kind in ("register", "paye", "ssnit", "journal", "variance"):
     ok(appr.get(f"{BASE}/api/payroll/runs/{run['id']}/report/{kind}/"))
 bank = appr.get(f"{BASE}/api/payroll/runs/{run['id']}/bank-file/", params={"format": "csv"})
 assert bank.status_code == 200 and b"Amount" in bank.content
-run = ok(appr.post(f"{BASE}/api/payroll/runs/{run['id']}/release/", json={"publish": True}))
+if not already:
+    run = ok(appr.post(f"{BASE}/api/payroll/runs/{run['id']}/release/", json={"publish": True}))
 print("released:", run["status"])
 slips = ok(emp.get(f"{BASE}/api/payroll/payslips/", params={"mine": 1}))["results"]
 assert slips, "employee should see a published payslip"

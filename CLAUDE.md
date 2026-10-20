@@ -10,9 +10,9 @@ Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: 
 
 ## Status
 
-- **Done:** Phase 1 + Ghana payroll, and Phase 2 (service desk, travel & expenses, compensation & benefits, e-signature). Both are on `main`.
-- **Next:** Phase 3, in this order:
-  1. recruitment/ATS, then onboarding and probation;
+- **Done:** Phase 1 + Ghana payroll, and Phase 2 (service desk, travel & expenses, compensation & benefits, e-signature), both on `main`. Phase 3 slice 1 (recruitment/ATS, onboarding, probation) is on the `phase-3` branch.
+- **Next:** the rest of Phase 3, in this order:
+  1. ~~recruitment/ATS, then onboarding and probation~~ (done);
   2. performance;
   3. LMS;
   4. employee relations, assets and offboarding;
@@ -27,12 +27,13 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 57 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 72 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)
 .venv/Scripts/python scripts/e2e_flow.py                       # Phase 1 flow: leave -> payroll maker-checker -> payslip
 .venv/Scripts/python scripts/e2e_phase2.py                     # Phase 2 flow: ticket, e-sign, travel/claim, benefits
+.venv/Scripts/python scripts/e2e_phase3.py                     # Phase 3 flow: vacancy, career-site apply, offer, hire, onboarding
 ```
 
 ```bash
@@ -44,6 +45,7 @@ npm test && npm run build
 
 - Run against PostgreSQL by setting `DATABASE_URL=postgres://...`. The default is SQLite. The tests pass on both.
 - Demo usernames and the shared demo password are at the top of `backend/apps/core/management/commands/seed_demo.py`. MFA is disabled for the demo org only.
+- Public pages (no login): career site `/careers/<org-code>` and offer response `/offer/<token>`. Their API lives under `/api/public/` (`AllowAny`, no auth classes, `apply` throttle scope); wrap work in `org_context(org)` since there is no user to set the tenant.
 - `.claude/launch.json` defines the `backend` and `frontend` preview servers. The backend runs with `--noreload`, so **restart it after backend edits**.
 
 ## Backend conventions (follow these)
@@ -96,6 +98,8 @@ npm test && npm run build
 
 - Login is throttled at 10/min, so the smoke test followed by the e2e scripts can hit 429s (`e2e_phase2.py` retries).
 - Released payroll periods can't take adjustments. Expense settlement via payroll needs an **open** period.
+- Onboarding auto-starts from a `post_save` signal on `Employee` (`apps/onboarding/signals.py`) only for hire dates within the last 30 days and when an active checklist exists. Tests using `make_employee` default to a 2020 hire date, so pass `hire_date=today` to exercise onboarding.
+- Candidates are not users: email/SMS them with `recruitment.services.message_candidate`, not `notify()`.
 - The `hospital` features are behind the per-org feature flag (`OrganizationFeature`). The demo org has payroll, hospital, sms and geofence enabled.
 - On Windows the Bash tool can choke on long inline heredocs containing quotes. Write a script file and run it instead.
 - Don't commit `.env`, `backend/db.sqlite3`, `backend/media/`, `frontend/dist/` or `node_modules/` (already in `.gitignore`).

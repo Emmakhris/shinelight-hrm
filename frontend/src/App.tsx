@@ -75,6 +75,28 @@ const Bonuses = lazy(() => import("./pages/compensation/Bonuses"));
 const MyBenefits = lazy(() => import("./pages/compensation/MyBenefits"));
 const BenefitsAdmin = lazy(() => import("./pages/compensation/BenefitsAdmin"));
 const MySignatures = lazy(() => import("./pages/me/MySignatures"));
+const Requisitions = lazy(() => import("./pages/recruitment/Requisitions"));
+const Vacancies = lazy(() => import("./pages/recruitment/Vacancies"));
+const VacancyPipeline = lazy(() => import("./pages/recruitment/VacancyPipeline"));
+const ApplicationDetail = lazy(() => import("./pages/recruitment/ApplicationDetail"));
+const Candidates = lazy(() => import("./pages/recruitment/Candidates"));
+const RecruitmentAnalytics = lazy(() => import("./pages/recruitment/RecruitmentAnalytics"));
+const MyInterviews = lazy(() => import("./pages/recruitment/MyInterviews"));
+const InternalJobs = lazy(() => import("./pages/me/InternalJobs"));
+const Onboardings = lazy(() => import("./pages/onboarding/Onboardings"));
+const OnboardingDetail = lazy(() => import("./pages/onboarding/OnboardingDetail"));
+const OnboardingSetup = lazy(() => import("./pages/onboarding/OnboardingSetup"));
+const OnboardingTasks = lazy(() => import("./pages/onboarding/MyTasks"));
+const Probation = lazy(() => import("./pages/onboarding/Probation"));
+const Careers = lazy(() => import("./pages/public/Careers"));
+const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
+
+// Public pages (career site and offer response) work signed in or not.
+const publicRoutes = [
+  <Route key="c" path="/careers/:org" element={<Careers />} />,
+  <Route key="cv" path="/careers/:org/:id" element={<Careers />} />,
+  <Route key="o" path="/offer/:token" element={<OfferResponse />} />,
+];
 
 function Guard({ perm, scope, feature, children }: { perm?: string | string[]; scope?: string; feature?: string; children: ReactNode }) {
   const { can, feature: hasFeature } = useAuth();
@@ -89,10 +111,13 @@ export default function App() {
   if (loading) return <Box sx={{ pt: 20 }}><Loading label="Starting ShineLight HRM…" /></Box>;
   if (!me) {
     return (
-      <Routes>
-        <Route path="/reset-password" element={<LoginPage />} />
-        <Route path="*" element={<LoginPage />} />
-      </Routes>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {publicRoutes}
+          <Route path="/reset-password" element={<LoginPage />} />
+          <Route path="*" element={<LoginPage />} />
+        </Routes>
+      </Suspense>
     );
   }
   const g = (el: ReactNode, perm?: string | string[], opts: { scope?: string; feature?: string } = {}) =>
@@ -100,6 +125,7 @@ export default function App() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
+        {publicRoutes}
         <Route path="/change-password" element={<Box sx={{ p: 3, maxWidth: 520, mx: "auto" }}><ChangePassword /></Box>} />
         <Route element={me.must_change_password ? <Navigate to="/change-password" replace /> : <Layout />}>
           <Route index element={<Home />} />
@@ -170,6 +196,19 @@ export default function App() {
           <Route path="me/benefits" element={<MyBenefits />} />
           <Route path="benefits/admin" element={g(<BenefitsAdmin />, "benefits.manage")} />
           <Route path="me/signatures" element={<MySignatures />} />
+          <Route path="me/jobs" element={<InternalJobs />} />
+          <Route path="recruitment/requisitions" element={g(<Requisitions />, ["recruitment.requisition", "recruitment.view"])} />
+          <Route path="recruitment/vacancies" element={g(<Vacancies />, "recruitment.view")} />
+          <Route path="recruitment/vacancies/:id" element={g(<VacancyPipeline />, "recruitment.view")} />
+          <Route path="recruitment/applications/:id" element={g(<ApplicationDetail />, "recruitment.view")} />
+          <Route path="recruitment/candidates" element={g(<Candidates />, "recruitment.view")} />
+          <Route path="recruitment/analytics" element={g(<RecruitmentAnalytics />, "recruitment.view")} />
+          <Route path="recruitment/my-interviews" element={<MyInterviews />} />
+          <Route path="onboarding" element={g(<Onboardings />, "onboarding.view")} />
+          <Route path="onboarding/my-tasks" element={<OnboardingTasks />} />
+          <Route path="onboarding/probation" element={<Probation />} />
+          <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
+          <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
           <Route path="*" element={<Alert severity="info">Page not found.</Alert>} />
         </Route>
       </Routes>

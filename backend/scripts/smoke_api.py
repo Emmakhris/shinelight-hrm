@@ -5,12 +5,14 @@ Signs in as each demo role and GETs every list/report endpoint, reporting any 5x
 """
 
 import sys
+import time
 
 import requests
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 PASSWORD = "Demo@ShineLight2026"  # demo-only, see apps/core/management/commands/seed_demo.py
-USERS = ["admin", "hrdirector", "hrofficer", "payroll", "approver", "manager", "employee", "auditor"]
+USERS = ["admin", "hrdirector", "hrofficer", "payroll", "approver", "manager", "employee", "auditor",
+         "recruiter", "itsupport", "newhire"]
 ENDPOINTS = [
     "auth/me/", "me/summary/", "me/profile/", "me/documents/", "me/letters/", "me/team/", "me/change-requests/",
     "employees/", "employees/data-quality/", "employees/change-requests/", "employees/categories/", "directory/",
@@ -37,14 +39,24 @@ ENDPOINTS = [
     "expenses/per-diem/", "expenses/budgets/", "expenses/travel/", "expenses/travel/outstanding-advances/",
     "expenses/claims/", "compensation/reviews/", "compensation/bonus-schemes/", "benefits/plans/", "benefits/plans/cost/",
     "benefits/enrollments/", "compensation/total-rewards/", "documents/signatures/", "documents/signatures/my-tasks/",
+    # phase 3
+    "recruitment/requisitions/", "recruitment/vacancies/", "recruitment/candidates/", "recruitment/applications/",
+    "recruitment/applications/?active=1", "recruitment/interviews/", "recruitment/interviews/?mine=1",
+    "recruitment/checks/", "recruitment/offers/", "recruitment/analytics/", "me/vacancies/", "me/onboarding/",
+    "onboarding/templates/", "onboarding/template-tasks/", "onboarding/records/", "onboarding/records/dashboard/",
+    "onboarding/tasks/", "onboarding/tasks/?mine=1&open=1", "onboarding/probation/", "onboarding/probation/?mine=1",
 ]
 
 failures = 0
 for user in USERS:
     s = requests.Session()
     s.get(f"{BASE}/api/auth/csrf/")
-    r = s.post(f"{BASE}/api/auth/login/", json={"username": user, "password": PASSWORD},
-               headers={"X-CSRFToken": s.cookies.get("csrftoken", "")})
+    for _ in range(10):  # the login endpoint is rate limited (10/min); wait it out
+        r = s.post(f"{BASE}/api/auth/login/", json={"username": user, "password": PASSWORD},
+                   headers={"X-CSRFToken": s.cookies.get("csrftoken", "")})
+        if r.status_code != 429:
+            break
+        time.sleep(int(r.headers.get("Retry-After", "10")) + 1)
     if r.status_code != 200 or r.json().get("mfa_required"):
         print(f"[{user}] login failed: {r.status_code} {r.text[:200]}")
         failures += 1
@@ -53,7 +65,8 @@ for user in USERS:
     for ep in ENDPOINTS:
         resp = s.get(f"{BASE}/api/{ep}")
         codes.setdefault(resp.status_code, []).append(ep)
-        if resp.status_code >= 500 or resp.status_code in (400, 405):
+        no_employee = resp.status_code == 400 and "employee record" in resp.text  # accounts without a staff record
+        if resp.status_code >= 500 or (resp.status_code in (400, 405) and not no_employee):
             failures += 1
             print(f"[{user}] {resp.status_code} {ep}: {resp.text[:300]}")
     summary = ", ".join(f"{c}:{len(v)}" for c, v in sorted(codes.items()))

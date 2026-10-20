@@ -17,14 +17,15 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
   - departmental budgets.
 - **E-signature integration** for contracts and letters.
 
-## Phase 3: Talent & lifecycle
+## Phase 3: Talent & lifecycle (in progress)
 
-- **Recruitment / ATS:** requisitions with approval, career portal, internal vacancies, screening, interviews and scorecards, references, offers, talent pool, analytics.
-- **Onboarding:**
+- **Recruitment / ATS (delivered):** requisitions with approval, career portal, internal vacancies, screening, interviews and scorecards, references, offers, talent pool, analytics.
+- **Onboarding (delivered):**
   - automatic checklists for HR, IT, finance and admin;
   - policy acknowledgment;
   - probation milestones and reviews;
   - new-hire surveys.
+- Deferred within recruitment: job-board posting integrations, CV parsing and AI-assisted matching (features.txt marks these as advanced).
 - **Performance:**
   - cycles, role-specific templates, cascading objectives and KPIs, competencies;
   - self, manager and 360-degree reviews;

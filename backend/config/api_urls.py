@@ -12,9 +12,11 @@ from apps.hospital import views as hosp
 from apps.integrations import views as integ
 from apps.leave import views as leave
 from apps.notifications import views as notif
+from apps.onboarding import views as onb
 from apps.organization import views as org
 from apps.payroll import views as pay
 from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSet
+from apps.recruitment import views as rec
 from apps.reports import views as rep
 from apps.selfservice import views as me
 from apps.servicedesk import views as sd
@@ -79,6 +81,20 @@ router.register("compensation/bonus-schemes", comp.SchemeViewSet, basename="bonu
 router.register("compensation/bonus-awards", comp.AwardViewSet, basename="bonus-awards")
 router.register("benefits/plans", comp.PlanViewSet, basename="benefit-plans")
 router.register("benefits/enrollments", comp.EnrollmentViewSet, basename="benefit-enrollments")
+# recruitment
+router.register("recruitment/requisitions", rec.RequisitionViewSet, basename="requisitions")
+router.register("recruitment/vacancies", rec.VacancyViewSet, basename="vacancies")
+router.register("recruitment/candidates", rec.CandidateViewSet, basename="candidates")
+router.register("recruitment/applications", rec.ApplicationViewSet, basename="applications")
+router.register("recruitment/interviews", rec.InterviewViewSet, basename="interviews")
+router.register("recruitment/checks", rec.CheckViewSet, basename="reference-checks")
+router.register("recruitment/offers", rec.OfferViewSet, basename="offers")
+# onboarding & probation
+router.register("onboarding/templates", onb.TemplateViewSet, basename="onboarding-templates")
+router.register("onboarding/template-tasks", onb.TemplateTaskViewSet, basename="onboarding-template-tasks")
+router.register("onboarding/tasks", onb.TaskViewSet, basename="onboarding-tasks")
+router.register("onboarding/probation", onb.ReviewViewSet, basename="probation-reviews")
+router.register("onboarding/records", onb.OnboardingViewSet, basename="onboardings")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -151,4 +167,11 @@ urlpatterns = [
     path("me/team/", me.MyTeamView.as_view()),
     path("me/data-export/", me.MyDataExportView.as_view()),
     path("compensation/total-rewards/", comp.TotalRewardsView.as_view()),
+    path("recruitment/analytics/", rec.AnalyticsView.as_view()),
+    path("me/vacancies/", rec.InternalVacancyView.as_view()),
+    path("me/onboarding/", onb.MyOnboardingView.as_view()),
+    path("public/careers/<slug:org_code>/", rec.CareersView.as_view()),
+    path("public/careers/<slug:org_code>/<int:pk>/", rec.CareerVacancyView.as_view()),
+    path("public/careers/<slug:org_code>/<int:pk>/apply/", rec.CareerApplyView.as_view()),
+    path("public/offers/<str:token>/", rec.OfferResponseView.as_view()),
 ] + router.urls

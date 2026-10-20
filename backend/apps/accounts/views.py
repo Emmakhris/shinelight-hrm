@@ -99,6 +99,7 @@ def me_payload(user):
             {
                 "id": org.id,
                 "name": org.name,
+                "code": org.code,
                 "currency": org.currency,
                 "features": list(org.features.filter(enabled=True).values_list("code", flat=True)),
                 "session_timeout_minutes": org.settings.get("session_timeout_minutes", 30),

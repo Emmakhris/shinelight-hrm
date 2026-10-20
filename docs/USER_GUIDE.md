@@ -14,6 +14,9 @@
 - **Travel:** Travel & expenses → *Request travel* (per diem is calculated for you). After the trip, submit an *expense claim* linked to the trip within 14 days; any unspent advance is recovered from your salary.
 - **Benefits:** Benefits & total rewards → enrol in eligible plans, add dependants, download your total rewards statement.
 - **Signatures:** Documents to sign → read the document, type your full name and confirm.
+- **Internal jobs:** Internal job openings → *Apply*. Your details come from your employee record.
+- **New starters:** Onboarding tasks shows your checklist (policies to acknowledge, details to confirm, training, a short feedback survey) and what HR, IT and your supervisor are preparing for you.
+- **Interview panels:** if you sit on a panel, Interview panels lists your interviews; open the CV and submit a scorecard afterwards.
 
 ## Line managers / department heads
 
@@ -21,6 +24,9 @@
 - **My team:** reports, who's on leave, probation and contract dates. **Team attendance today** shows who is in, late or absent.
 - **Delegations:** before you travel, delegate your approvals to a colleague for the dates you are away.
 - **Roster** (if you manage shifts): assign shifts, generate from a pattern, then **Publish**.
+- **Staff requisitions:** request new or replacement staff with the business need and budget. Approval goes to the head of department, HR Director and finance.
+- **Probation reviews:** you are reminded a week before each review. Rate the six criteria and recommend confirmation, extension (with the gaps) or termination; HR decides through the inbox.
+- **Onboarding tasks:** day-one welcome, departmental induction and probation objectives for your new starters.
 
 ## HR officers
 
@@ -29,6 +35,13 @@
 - **Exits:** *Record separation*. On the exit date the account is disabled, and retention dates are set.
 - **Letters:** employee record → *Generate letter*, or approve self-service letter requests in the inbox.
 - **Imports, data quality, leave adjustments, holidays and policies** are under People, Leave and Settings.
+
+## Recruitment officers
+
+- **Vacancies:** advertise an approved requisition (*Advertise*), add the description and screening questions, then *Publish*. *Career link* copies the public page address.
+- **Pipeline:** sort by screening score; the flag shows knock-out answers and missing requirements, which are advisory. Select candidates and *Move* them; rejections need a reason and can send the regret email.
+- **Candidate page:** schedule interviews (the panel and candidate are notified), record reference and background checks (tick consent first), then *Make offer*. After approval, *Send* emails a secure link; when the candidate accepts, *Hire* creates the employee and starts onboarding.
+- **Talent pool:** Candidates & talent pool lists people who agreed to be kept on file. Data is anonymised automatically after the retention period (12 months by default).
 
 ## HR service desk agents
 

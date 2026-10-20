@@ -54,6 +54,15 @@ AUDITED = {
     "compensation.BenefitPlan": {},
     "compensation.BenefitEnrollment": {"sensitive": ["dependants"]},
     "documents.SignatureRequest": {},
+    "recruitment.Requisition": {},
+    "recruitment.Vacancy": {},
+    "recruitment.Candidate": {"sensitive": ["email", "phone"]},
+    "recruitment.Application": {"exclude": ["screening_flags"]},
+    "recruitment.ReferenceCheck": {"sensitive": ["outcome_notes"]},
+    "recruitment.Offer": {"sensitive": ["basic_salary", "allowances"], "exclude": ["token", "letter"]},
+    "onboarding.ChecklistTemplate": {},
+    "onboarding.Onboarding": {},
+    "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 
 

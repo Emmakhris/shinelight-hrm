@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     "apps.servicedesk",
     "apps.expenses",
     "apps.compensation",
+    "apps.recruitment",
+    "apps.onboarding",
 ]
 
 MIDDLEWARE = [
@@ -159,7 +161,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
     "PAGE_SIZE": 25,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_RATES": {"login": "10/min", "anon": "60/min"},
+    "DEFAULT_THROTTLE_RATES": {"login": "10/min", "anon": "60/min", "apply": "20/hour"},
     "DATE_INPUT_FORMATS": ["%Y-%m-%d", "%d/%m/%Y"],
     "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
     # ?format=xlsx|csv is used by our export endpoints, not for DRF renderer selection

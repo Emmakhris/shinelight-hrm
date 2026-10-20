@@ -42,6 +42,14 @@ app.conf.beat_schedule = {
         "task": "apps.expenses.tasks.travel_housekeeping",
         "schedule": crontab(hour=7, minute=30),
     },
+    "recruitment-housekeeping": {
+        "task": "apps.recruitment.tasks.recruitment_housekeeping",
+        "schedule": crontab(hour=0, minute=30),
+    },
+    "onboarding-housekeeping": {
+        "task": "apps.onboarding.tasks.onboarding_housekeeping",
+        "schedule": crontab(hour=7, minute=15),
+    },
     "scheduled-reports": {
         "task": "apps.reports.tasks.send_scheduled_reports",
         "schedule": crontab(hour=6, minute=0),

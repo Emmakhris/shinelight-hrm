@@ -22,7 +22,7 @@ export interface Me {
     photo: string | null;
     is_manager: boolean;
   };
-  organization: null | { id: number; name: string; currency: string; features: string[]; session_timeout_minutes: number };
+  organization: null | { id: number; name: string; code: string; currency: string; features: string[]; session_timeout_minutes: number };
 }
 
 interface AuthState {

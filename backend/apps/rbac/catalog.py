@@ -52,6 +52,12 @@ PERMISSIONS = [
     ("compensation.view", "View salary reviews and bonus schemes", True),
     ("compensation.manage", "Prepare salary reviews and bonus awards", True),
     ("benefits.manage", "Manage benefit plans and enrolments", True),
+    ("recruitment.requisition", "Raise manpower requisitions", False),
+    ("recruitment.view", "View vacancies, candidates and applications", False),
+    ("recruitment.manage", "Manage vacancies, pipeline, interviews and checks", False),
+    ("recruitment.offer", "Prepare offers and convert hires", True),
+    ("onboarding.view", "View onboarding progress and probation reviews", False),
+    ("onboarding.manage", "Manage onboarding checklists, tasks and probation", False),
     ("hospital.view", "View clinical credentials and rosters", False),
     ("hospital.manage", "Manage clinical credentials and rosters", False),
 ]
@@ -86,12 +92,14 @@ DEFAULT_ROLES = {
          "organization.view", "documents.view", "documents.upload", "documents.generate", "leave.view",
          "leave.approve", "leave.manage", "attendance.view", "attendance.approve", "reports.view",
          "notifications.manage", "hospital.view", "hospital.manage", "servicedesk.agent", "servicedesk.manage",
-         "expenses.view", "expenses.manage", "benefits.manage", "compensation.view"],
+         "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
+         "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
         "organization",
-        ["employees.view", "organization.view", "reports.view"],
+        ["employees.view", "organization.view", "reports.view", "recruitment.view", "recruitment.manage",
+         "recruitment.offer", "recruitment.requisition", "onboarding.view", "documents.generate"],
     ),
     "payroll_officer": (
         "Payroll Officer",
@@ -110,13 +118,14 @@ DEFAULT_ROLES = {
         "Department Head",
         "department",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
-         "attendance.approve", "reports.view", "documents.view", "expenses.view"],
+         "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
+         "onboarding.view"],
     ),
     "line_manager": (
         "Line Manager",
         "team",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
-         "attendance.approve", "expenses.view"],
+         "attendance.approve", "expenses.view", "recruitment.requisition", "onboarding.view"],
     ),
     "finance_officer": (
         "Finance Officer",
@@ -140,6 +149,16 @@ DEFAULT_ROLES = {
         "organization",
         ["employees.view", "organization.view", "payroll.view", "leave.view", "attendance.view", "audit.view",
          "reports.view", "reports.view_payroll", "documents.view", "expenses.view", "compensation.view"],
+    ),
+    "it_support": (
+        "IT Support (account and equipment provisioning)",
+        "organization",
+        ["organization.view"],
+    ),
+    "admin_officer": (
+        "Administration / Facilities Officer",
+        "organization",
+        ["organization.view"],
     ),
     "oh_professional": (
         "Occupational Health Professional",

@@ -1,7 +1,9 @@
 """Demo data for evaluation and training. NEVER run against production.
 
 Demo logins (all share DEMO_PASSWORD below; MFA disabled for the demo org):
-  admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor
+  admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor,
+  recruiter (recruitment officer), itsupport (IT provisioning), newhire (employee in onboarding)
+Public career site: /careers/shinelight
 """
 
 import datetime as dt
@@ -44,6 +46,8 @@ class Command(BaseCommand):
         org.save()
         with org_context(org, admin), transaction.atomic():
             self._seed(org)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_talent(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -315,3 +319,149 @@ class Command(BaseCommand):
             d += dt.timedelta(days=1)
         build_period_summary(today - dt.timedelta(days=14), today - dt.timedelta(days=1))
         self.stdout.write(f"Created {Employee.objects.count()} employees.")
+
+
+    def _seed_talent(self, org, admin):
+        """Recruitment pipeline, a new hire in onboarding and probation reviews (Phase 3). Idempotent."""
+        from django.core.files.base import ContentFile
+
+        from apps.core.pdf import html_to_pdf
+        from apps.employees.models import Employee
+        from apps.employees.services import hire
+        from apps.onboarding import services as onboarding
+        from apps.onboarding.models import ProbationReview
+        from apps.organization.models import Department, GradeStep, Position
+        from apps.rbac.models import Role, RoleAssignment
+        from apps.recruitment import services as rec
+        from apps.recruitment.models import Interview, ReferenceCheck, Requisition, Scorecard, Vacancy
+
+        User = get_user_model()
+        if Vacancy.objects.exists() or not Employee.objects.exists():
+            return
+        today = dt.date.today()
+
+        def user(username, first, last, roles, employee=None):
+            u = User.objects.filter(username=username).first() or User.objects.create_user(
+                username, f"{username}@shinelight.local", DEMO_PASSWORD, organization=org, first_name=first,
+                last_name=last)
+            for rc in roles:
+                RoleAssignment.objects.get_or_create(user=u, role=Role.objects.get(code=rc))
+            if employee is not None:
+                employee.user = u
+                employee.save(update_fields=["user"])
+            return u
+
+        recruiter = user("recruiter", "Yaa", "Frimpong", ["recruitment_officer"])
+        user("itsupport", "Prince", "Badu", ["it_support"])
+        mgr = User.objects.get(username="manager")
+        hro = User.objects.get(username="hrofficer")
+        ward = Department.objects.get(code="WARD_A")
+        rgn = Position.objects.filter(department=ward, job_title__name="Staff Nurse").first()
+
+        # approved requisition -> published vacancy with applicants
+        req = Requisition.objects.create(
+            job_title=rgn.job_title, department=ward, position=rgn, grade=rgn.grade, headcount=1, reason="expansion",
+            justification="Bed capacity on Ward A increased from 24 to 30; nurse-to-patient ratio above standard.",
+            salary_min=D("4200"), salary_max=D("5200"), target_start_date=today + dt.timedelta(days=45),
+            requested_by=mgr.employee, created_by=mgr, status="approved", reference="REQ-DEMO-0001",
+            submitted_at=timezone.now() - dt.timedelta(days=12), approved_at=timezone.now() - dt.timedelta(days=9))
+        vac = rec.vacancy_from_requisition(req, recruiter)
+        vac.summary = ("ShineLight Health Services is recruiting a Staff Nurse (Registered General Nurse) for its 30-bed medical "
+                       "ward at Ridge, Accra.")
+        vac.responsibilities = ("- Deliver safe, evidence-based nursing care\n- Administer medication and monitor "
+                                "patients\n- Maintain accurate nursing records\n- Work rotating shifts including nights")
+        vac.requirements = "- Diploma or degree in Nursing\n- Valid NMC licence (PIN)\n- At least 2 years' ward experience"
+        vac.min_qualification, vac.min_experience_years = "diploma", 2
+        vac.salary_display = "Competitive, plus night and transport allowances"
+        vac.closing_date = today + dt.timedelta(days=21)
+        vac.advertising_cost = D("1800")
+        vac.channels = ["career_site", "Daily Graphic", "LinkedIn"]
+        vac.screening_questions = [
+            {"key": "nmc_pin", "question": "Do you hold a valid NMC licence (PIN)?", "type": "yes_no", "knockout": "no"},
+            {"key": "nights", "question": "Are you able to work night shifts?", "type": "yes_no", "knockout": "no"}]
+        vac.save()
+        rec.publish_vacancy(vac, recruiter)
+        vac.published_at = timezone.now() - dt.timedelta(days=8)
+        vac.save(update_fields=["published_at"])
+        cv = html_to_pdf("<h2>Curriculum vitae</h2><p>Demo candidate CV.</p>")
+        people = [("Abena", "Ofori", "degree", 5, "yes", "yes", "career_site"),
+                  ("Mercy", "Acheampong", "diploma", 3, "yes", "yes", "career_site"),
+                  ("Isaac", "Sarpong", "diploma", 2, "yes", "yes", "referral"),
+                  ("Gifty", "Antwi", "degree", 1, "yes", "no", "job_board"),
+                  ("Comfort", "Nkrumah", "certificate", 4, "no", "yes", "career_site"),
+                  ("Prince", "Appiah", "degree", 6, "yes", "yes", "agency")]
+        apps = []
+        for i, (fn, ln, qual, yrs, pin, nights, src) in enumerate(people):
+            a = rec.apply(vac, {"first_name": fn, "last_name": ln, "email": f"{fn.lower()}.{ln.lower()}@example.com",
+                                "phone": f"0244{100000 + i * 1111:06d}", "highest_qualification": qual,
+                                "years_experience": yrs, "gender": "male" if fn in ("Isaac", "Prince") else "female",
+                                "current_employer": random.choice(["Korle Bu Teaching Hospital", "37 Military Hospital",
+                                                                   "Ridge Hospital", "Nyaho Clinic"]),
+                                "current_title": "Staff Nurse"},
+                          cv=ContentFile(cv, name=f"cv-{ln.lower()}.pdf"), answers={"nmc_pin": pin, "nights": nights},
+                          source=src, consent=True, talent_pool=i % 2 == 0, actor=recruiter)
+            apps.append(a)
+        abena, mercy, isaac, gifty, comfort, prince = apps
+        rec.move_stage(comfort, "rejected", recruiter, reason="No valid NMC licence", notify_candidate=False)
+        for a in (abena, mercy, isaac, prince):
+            rec.move_stage(a, "shortlisted", recruiter, notify_candidate=False)
+        # Abena: interviewed, scored, checked; offer awaiting HR Director approval
+        iv = Interview.objects.create(application=abena, round_name="Panel interview", mode="in_person",
+                                      venue="Board room, Ridge campus",
+                                      scheduled_at=timezone.now() - dt.timedelta(days=2), status="completed")
+        iv.panel.set([mgr, hro])
+        crit = vac.criteria
+        for u, base in ((mgr, 5), (hro, 4)):
+            ratings = {c["name"]: base if j % 2 == 0 else 4 for j, c in enumerate(crit)}
+            Scorecard.objects.create(interview=iv, panelist=u, ratings=ratings,
+                                     recommendation="strong_yes" if base == 5 else "yes",
+                                     overall_score=rec.weighted_score(crit, ratings),
+                                     strengths="Calm under pressure; strong medication-safety knowledge.")
+        rec._advance_to(abena, "interview", recruiter)
+        for t, name in (("reference", "Matron, Korle Bu"), ("professional", "NMC Ghana")):
+            chk = ReferenceCheck.objects.create(application=abena, check_type=t, referee_name=name,
+                                                consent_obtained=True)
+            rec.update_check(chk, recruiter, "verified", "Confirmed by phone; no concerns.")
+        step2 = GradeStep.objects.get(grade=rgn.grade, step=2)
+        offer = rec.create_offer(abena, {"job_title": rgn.job_title, "department": ward, "grade_step": step2,
+                                         "basic_salary": step2.basic_salary,
+                                         "allowances": [{"name": "Transport", "amount": 300}],
+                                         "start_date": today + dt.timedelta(days=30), "probation_months": 6,
+                                         "expiry_date": today + dt.timedelta(days=10)}, recruiter)
+        rec.submit_offer(offer, recruiter)
+        # Mercy: interview tomorrow
+        tomorrow = timezone.make_aware(dt.datetime.combine(today + dt.timedelta(days=1), dt.time(10, 0)))
+        rec.schedule_interview(mercy, {"round_name": "Panel interview", "scheduled_at": tomorrow, "mode": "in_person",
+                                       "venue": "Board room, Ridge campus"}, [mgr, hro], recruiter, notify=False)
+        # a pending requisition in the approval inbox
+        porter = Position.objects.filter(job_title__name="Porter").first()
+        req2 = Requisition.objects.create(
+            job_title=porter.job_title, department=porter.department, position=porter, grade=porter.grade,
+            employment_type="contract", headcount=1, reason="expansion", created_by=mgr, requested_by=mgr.employee,
+            justification="Extra porter needed for the new night shift on Ward A.", salary_max=D("2200"))
+        rec.submit_requisition(req2, mgr)
+
+        # a new hire who started 3 days ago: onboarding and probation reviews start automatically
+        lab = Position.objects.filter(job_title__name="Medical Laboratory Scientist").first()
+        md = Employee.objects.get(user__username="medical")
+        start = today - dt.timedelta(days=3)
+        emp = hire({"title": "mr", "first_name": "Kwesi", "last_name": "Antwi", "gender": "male",
+                    "date_of_birth": dt.date(1997, 4, 12), "hire_date": start, "position": lab, "supervisor": md,
+                    "grade_step": GradeStep.objects.get(grade=lab.grade, step=1), "phone": "0244998877",
+                    "work_email": "kwesi.antwi@shinelight.local", "probation_end_date": start + dt.timedelta(days=182),
+                    "ghana_card_no": "GHA-799999999-1"}, allow_duplicate=True)
+        user("newhire", "Kwesi", "Antwi", ["employee"], employee=emp)
+        from apps.payroll.models import EmployeePayProfile, PayGroup
+
+        EmployeePayProfile.objects.create(employee=emp, pay_group=PayGroup.objects.get(code="monthly"))
+        ob = emp.onboardings.first()
+        if ob:
+            for t in ob.tasks.filter(due_date__lt=start, owner_type__in=["hr", "it", "finance"])[:6]:
+                t.status, t.completed_by, t.completed_at = "done", hro, timezone.now() - dt.timedelta(days=4)
+                t.save()
+        # probation reviews for staff already on probation
+        for e in Employee.objects.filter(status="probation", probation_end_date__isnull=False):
+            if not ProbationReview.objects.filter(employee=e).exists():
+                onboarding.schedule_probation_reviews(e)
+        self.stdout.write(f"Recruitment demo: {vac.reference} with {len(apps)} applicants; career site "
+                          f"/careers/{org.code}. New hire {emp.staff_number} in onboarding.")

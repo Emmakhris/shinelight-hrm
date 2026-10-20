@@ -164,6 +164,19 @@ def seed_workflows():
         ("salary_review", "Salary review approval", 100, {}, [(1, "HR Director approval", "role", hr_dir, 120, False)]),
         ("bonus_scheme", "Bonus approval", 100, {}, [(1, "HR Director approval", "role", hr_dir, 120, False)]),
         ("benefit_enrollment", "Benefit enrolment", 100, {}, [(1, "HR verification", "role", hr, 72, False)]),
+        ("job_requisition", "Manpower requisition", 100, {}, [
+            (1, "Head of department", "dept_head", None, 48, True),
+            (2, "HR Director approval", "role", hr_dir, 72, False),
+            (3, "Finance (budget) approval", "role", Role.objects.get(code="finance_officer"), 72, False)]),
+        ("job_offer", "Offer approval", 100, {}, [(1, "HR Director approval", "role", hr_dir, 48, False)]),
+        ("job_offer", "Offer above budget", 50, {"field": "above_budget", "op": "eq", "value": True}, [
+            (1, "HR Director approval", "role", hr_dir, 48, False),
+            (2, "Finance (budget) approval", "role", Role.objects.get(code="finance_officer"), 48, False)]),
+        ("probation_outcome", "Probation confirmation", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
+        ("probation_outcome", "Probation extension / termination", 50,
+         {"field": "recommendation", "op": "in", "value": ["extend", "terminate"]}, [
+            (1, "HR review", "role", hr, 72, False),
+            (2, "HR Director decision", "role", hr_dir, 72, False)]),
     ]
     for rtype, name, prio, cond, steps in defs:
         d, created = WorkflowDefinition.objects.get_or_create(request_type=rtype, name=name,
@@ -280,6 +293,7 @@ def seed_documents():
             ("appraisal", "Performance appraisal", "confidential", False, False),
             ("letters", "HR letters", "confidential", False, False),
             ("policy", "Policy / handbook", "internal", False, False),
+            ("cv", "CV / application", "confidential", False, False),
             ("other", "Other", "confidential", False, False)]
     for code, name, conf, expiry, mandatory in cats:
         DocumentCategory.objects.get_or_create(code=code, defaults={"name": name, "default_confidentiality": conf,
@@ -316,6 +330,29 @@ letter to signify your acceptance.</p>
 as {{ job_title.name }} with effect from {{ employee.confirmation_date|default:today|date:"jS F, Y" }}.</p>
 <p>Congratulations, and we look forward to your continued contribution.</p>
 <br><p>Yours sincerely,</p><br><br><p><b>Head, Human Resource</b></p>"""),
+        "offer_letter": ("Offer of employment (candidate)", "appointment", False, """
+<p>{{ candidate.full_name }}<br>{{ candidate.email }}</p>
+<p>Dear {{ candidate.first_name }},</p>
+<h3>OFFER OF EMPLOYMENT - {{ offer.job_title.name|upper }}</h3>
+<p>Following your recent interview, we are pleased to offer you employment as <b>{{ offer.job_title.name }}</b>
+in the {{ offer.department.name }} of {{ organization.name }} on a {{ offer.get_employment_type_display|lower }}
+basis, with effect from <b>{{ offer.start_date|date:"jS F, Y" }}</b>.</p>
+<p><b>Remuneration.</b> Your monthly basic salary will be GHS {{ offer.basic_salary|floatformat:2 }}{% if offer.grade %}
+(grade {{ offer.grade.code }}{% if offer.grade_step %}, step {{ offer.grade_step.step }}{% endif %}){% endif %}.
+{% if allowances %}You will also receive the following monthly allowances:</p><ul>{% for a in allowances %}
+<li>{{ a.name }}: GHS {{ a.amount|floatformat:2 }}</li>{% endfor %}</ul><p>{% endif %}
+All pay is subject to PAYE income tax, SSNIT and other statutory deductions.</p>
+{% if offer.probation_months %}<p><b>Probation.</b> You will serve a probationary period of {{ offer.probation_months }}
+month(s){% if probation_end %}, ending on {{ probation_end|date:"jS F, Y" }}{% endif %}, after which your appointment
+may be confirmed subject to satisfactory performance.</p>{% endif %}
+{% if offer.contract_end_date %}<p><b>Duration.</b> This is a fixed-term engagement ending on
+{{ offer.contract_end_date|date:"jS F, Y" }}.</p>{% endif %}
+{% if offer.terms %}<p>{{ offer.terms|linebreaksbr }}</p>{% endif %}
+<p>This offer is conditional on satisfactory references, verification of your academic and professional
+certificates, a pre-employment medical examination and presentation of your Ghana Card and SSNIT number.</p>
+<p>Kindly confirm your acceptance by <b>{{ offer.expiry_date|date:"jS F, Y" }}</b> using the secure link sent to you.
+This offer lapses if not accepted by that date.</p>
+<br><p>Yours faithfully,</p><br><br><p><b>Head, Human Resource</b><br>{{ organization.name }}</p>"""),
         "introduction": ("Letter of introduction", "introduction", True, """
 <p>{% if addressed_to %}{{ addressed_to }}{% else %}TO WHOM IT MAY CONCERN{% endif %}</p><h3>LETTER OF INTRODUCTION</h3>
 <p>We write to introduce <b>{{ employee.full_name }}</b>, {{ job_title.name }} of {{ organization.name }}.
@@ -326,6 +363,48 @@ as {{ job_title.name }} with effect from {{ employee.confirmation_date|default:t
         LetterTemplate.objects.get_or_create(code=code, defaults={"name": name, "letter_type": ltype,
                                                                   "body_html": body.strip(), "self_service": ess,
                                                                   "output_category": letters_cat})
+
+
+def seed_onboarding():
+    from apps.documents.models import DocumentCategory
+    from apps.onboarding.models import ChecklistTemplate, ChecklistTemplateTask
+
+    tpl, created = ChecklistTemplate.objects.get_or_create(
+        name="Standard new-hire onboarding", defaults={"description": "Default checklist for all new employees."})
+    if not created:
+        return
+    cat = {c.code: c for c in DocumentCategory.objects.all()}
+    survey = [{"key": "welcome", "label": "How welcome did you feel in your first weeks?", "type": "rating"},
+              {"key": "clarity", "label": "How clear are your role and expectations?", "type": "rating"},
+              {"key": "tools", "label": "Did you have the tools and access you needed on day one?", "type": "rating"},
+              {"key": "comments", "label": "What could we improve for future new hires?", "type": "text"}]
+    tasks = [
+        # (offset, title, category, owner, doc category, description, form)
+        (-10, "Verify academic and professional certificates", "pre_employment", "hr", None, "", []),
+        (-7, "Collect Ghana Card, SSNIT number and TIN", "documents", "hr", "ghana_card", "", []),
+        (-7, "Collect bank / mobile money details for payroll", "documents", "hr", None, "", []),
+        (-5, "Pre-employment medical examination", "pre_employment", "hr", None, "", []),
+        (-5, "Sign the employment contract", "documents", "hr", "contract", "", []),
+        (-3, "Create network, email and HRMS user account", "access", "it", None,
+         "Create accounts and grant application access approved for the role.", []),
+        (-3, "Issue laptop / desktop and phone extension", "equipment", "it", None, "", []),
+        (-2, "Prepare workstation, ID / access card and uniform", "equipment", "admin", None, "", []),
+        (-2, "Add to payroll with grade, bank details and statutory numbers", "access", "finance", None, "", []),
+        (0, "Welcome on day one and introduce the team and buddy", "induction", "manager", None, "", []),
+        (1, "Organization induction (history, structure, values, conditions of service)", "induction", "hr", None,
+         "", []),
+        (3, "Departmental induction and role briefing", "induction", "manager", None, "", []),
+        (5, "Read and acknowledge the staff handbook and code of conduct", "policy", "employee", None, "", []),
+        (5, "Confirm personal details, emergency contacts and beneficiaries in self-service", "documents",
+         "employee", None, "", []),
+        (7, "Agree probation objectives with the new employee", "probation", "manager", None, "", []),
+        (14, "Complete mandatory training (health & safety, data protection)", "training", "employee", None, "", []),
+        (30, "New-hire feedback survey", "survey", "employee", None, "", survey),
+    ]
+    for i, (offset, title, category, owner, doc, desc, form) in enumerate(tasks):
+        ChecklistTemplateTask.objects.create(template=tpl, order=i, title=title, category=category, owner_type=owner,
+                                             due_offset_days=offset, document_category=cat.get(doc) if doc else None,
+                                             description=desc, form=form, is_mandatory=category != "survey")
 
 
 def seed_attendance():
@@ -367,6 +446,7 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         seed_attendance()
         seed_servicedesk()
         seed_expenses_and_benefits()
+        seed_onboarding()
         year = dt.date.today().year
         seed_public_holidays(year)
         seed_public_holidays(year + 1)

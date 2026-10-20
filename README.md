@@ -37,7 +37,16 @@ Built for a single organization today; every record is tenant-scoped, so the sam
 
 The workflow engine also skips a step when its only approver already approved an earlier step of the same request (e.g. a supervisor who is also head of department).
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for Phases 3–4: service desk, recruitment, performance, LMS, succession and more.
+### Phase 3 (in progress): Talent & lifecycle
+
+| Area | Highlights |
+|---|---|
+| **Recruitment / ATS** | Manpower requisitions checked against the approved establishment and routed to the head of department, HR Director and finance; vacancies published to a public **career site** (`/careers/<org-code>`) and an internal job board; applications with CV upload, consent (Act 843) and screening questions; advisory screening score and knock-out flags (never auto-rejects); pipeline stages with reasons for rejection; interview scheduling with panel notifications and candidate invitations; weighted scorecards, with colleagues' scores hidden until a panelist submits; reference and background checks that require candidate consent; talent pool with automatic anonymisation when the retention period ends; analytics (time to hire, time to fill, vacancy ageing, funnel, sources, offer acceptance, cost per hire) |
+| **Offers** | Offer letters generated from a template; approval by the HR Director (plus finance when above the requisition budget); revisions for negotiation; a secure public link where the candidate reads the letter and accepts by typing their name (date, time and IP recorded), declines or asks to discuss terms; **Hire** creates the employee through the effective-dated hire record and files the CV and offer letter in the personnel file |
+| **Onboarding** | Checklists start automatically when a new employee is registered; the most specific template is used (department and employment type); tasks route to HR, the supervisor, IT, finance, administration and the new hire, with pre-boarding tasks before day one; completion rules (document on file, policy acknowledgment, forms such as the new-hire survey); overdue escalation to HR; dashboard |
+| **Probation** | Mid-point and end-of-probation reviews scheduled from the hire and probation end dates, with reminders to the supervisor; rated review with a recommendation; confirmation (effective from the end of probation, with a confirmation letter), extension (re-schedules the final review) or termination through the approval workflow; employee sees and acknowledges the review once submitted |
+
+Still to come in Phase 3: performance, learning, employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -58,7 +67,7 @@ npm install
 npm run dev                                        # http://localhost:5173 (proxies /api to :8000)
 ```
 
-Development uses SQLite, console email/SMS and synchronous Celery tasks by default. Demo usernames (admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor) and the shared demo password are listed at the top of `backend/apps/core/management/commands/seed_demo.py`. MFA is disabled for the demo organization only.
+Development uses SQLite, console email/SMS and synchronous Celery tasks by default. Demo usernames (admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor, recruiter, itsupport, newhire) and the shared demo password are listed at the top of `backend/apps/core/management/commands/seed_demo.py`. MFA is disabled for the demo organization only. The demo career site is at http://localhost:5173/careers/shinelight.
 
 ## Production (Docker on a VPS)
 
@@ -73,10 +82,11 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 57 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature
+cd backend && .venv/Scripts/python -m pytest          # 72 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits
+.venv/Scripts/python scripts/e2e_phase3.py             # vacancy → career-site application → offer approval → candidate accepts → hire → onboarding → requisition
 cd frontend && npm test && npx tsc --noEmit && npm run build
 ```
 
