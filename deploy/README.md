@@ -12,6 +12,7 @@ the same, so a fix or a tax-table update ships to both.
 | PostgreSQL row-level security | Not needed | On |
 | HTTPS | Let's Encrypt, or an internal certificate for office-only networks | Certificates issued per organization on demand |
 | Upgrades | Per customer, when they're ready | Everyone at once |
+| What sets the limits | A signed licence file you issue ([docs/LICENSING.md](../docs/LICENSING.md)) | The organization's plan |
 | Kit | [`self-hosted/INSTALL.md`](self-hosted/INSTALL.md) | [`cloud/OPERATIONS.md`](cloud/OPERATIONS.md) |
 
 Both kits extend the root `docker-compose.yml`: the `.env` you copy from the kit sets `COMPOSE_FILE`, so the

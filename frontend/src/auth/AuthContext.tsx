@@ -11,6 +11,7 @@ export interface Me {
   mfa_enabled: boolean;
   is_superuser: boolean;
   is_platform_admin?: boolean;
+  edition?: "self_hosted" | "cloud";
   permissions: string[];
   scopes: Record<string, string[]>;
   roles: string[];

@@ -80,6 +80,7 @@ def me_payload(user):
         "mfa_enabled": user.mfa_enabled,
         "is_superuser": user.is_superuser,
         "is_platform_admin": bool(getattr(user, "is_platform_admin", False) and user.organization_id is None),
+        "edition": settings.DEPLOYMENT_MODE,
         "permissions": all_permission_codes(user),
         "scopes": {code: sorted({g.scope for g in gs}) for code, gs in grants.items()},
         "roles": list(user.role_assignments.values_list("role__code", flat=True)),

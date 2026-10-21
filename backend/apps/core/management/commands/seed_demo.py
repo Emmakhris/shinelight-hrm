@@ -36,6 +36,12 @@ class Command(BaseCommand):
     def handle(self, *args, **opts):
         if not settings.DEBUG and not opts["force"]:
             raise CommandError("Refusing to seed demo data with DEBUG=False (use --force on a test server only).")
+        from apps.licensing.services import bypass
+
+        with bypass():                       # demo data exceeds the self-hosted evaluation limit
+            self._handle(*args, **opts)
+
+    def _handle(self, *args, **opts):
         random.seed(42)
         org, admin = setup_organization("ShineLight Health Services", "shinelight", "admin", DEMO_PASSWORD,
                                         "admin@shinelight.local", ["payroll", "hospital", "sms", "geofence", "ai_assistant"],

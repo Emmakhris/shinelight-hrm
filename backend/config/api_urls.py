@@ -27,6 +27,7 @@ from apps.reports import views as rep
 from apps.safety import views as ohs
 from apps.selfservice import views as me
 from apps.assistant import views as ai
+from apps.licensing import views as lic
 from apps.servicedesk import views as sd
 from apps.talent import views as tal
 from apps.sso import views as sso
@@ -261,6 +262,8 @@ urlpatterns = [
     path("public/tenant/", plat.TenantInfoView.as_view()),
     path("public/signup/", plat.SignupView.as_view()),
     path("public/tls-check/", plat.TlsCheckView.as_view()),
+    path("licence/", lic.LicenceView.as_view()),
+    path("licence/status/", lic.LicenceStatusView.as_view()),
     path("sso/discover/", sso.DiscoverView.as_view()),
     path("sso/<int:pk>/start/", sso.StartView.as_view()),
     path("sso/callback/", sso.CallbackView.as_view()),

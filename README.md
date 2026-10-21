@@ -96,7 +96,8 @@ Development uses SQLite, console email/SMS and synchronous Celery tasks by defau
 ShineLight ships as **two editions from one codebase**: **self-hosted** (one organization on the customer's own
 server) and **cloud** (multi-organization SaaS you host). See [deploy/README.md](deploy/README.md), then follow
 [deploy/self-hosted/INSTALL.md](deploy/self-hosted/INSTALL.md) or [deploy/cloud/OPERATIONS.md](deploy/cloud/OPERATIONS.md).
-The generic steps below still apply to a plain single-server install.
+The generic steps below still apply to a plain single-server install. Self-hosted customers are licensed with
+signed licence files: see [docs/LICENSING.md](docs/LICENSING.md).
 
 ```bash
 cp .env.example .env            # set SECRET_KEY, FIELD_ENCRYPTION_KEY, DB password, hosts, SMTP, SMS
@@ -111,7 +112,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 129 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning, report builder and forecasts, single sign-on, AI assistant, multi-organization isolation
+cd backend && .venv/Scripts/python -m pytest          # 134 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning, report builder and forecasts, single sign-on, AI assistant, multi-organization isolation
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

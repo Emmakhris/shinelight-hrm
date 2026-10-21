@@ -125,25 +125,45 @@ def set_status(org, status, reason=""):
 
 
 # ---------------------------------------------------------------- plans and limits
+def employee_cap(org):
+    """(cap, source) for active employees: the plan in the cloud edition, the licence when self-hosted."""
+    if not is_cloud():
+        from apps.licensing.services import employee_cap as licence_cap
+
+        return licence_cap(), "licence"
+    plan = org.plan if org else None
+    return (plan.max_employees if plan else None) or None, "plan"
+
+
 def employee_limit_reached(org):
     from apps.employees.models import ACTIVE_STATUSES, Employee
 
-    plan = org.plan if org else None
-    if not plan or not plan.max_employees:
+    cap, _ = employee_cap(org)
+    if not cap or org is None:
         return False
-    return Employee.all_objects.filter(organization=org, status__in=ACTIVE_STATUSES).count() >= plan.max_employees
+    return Employee.all_objects.filter(organization=org, status__in=ACTIVE_STATUSES).count() >= cap
 
 
 def check_employee_limit(org):
     if employee_limit_reached(org):
-        raise BusinessRuleError(f"Your {org.plan.name} plan allows up to {org.plan.max_employees} active "
-                                f"employees. Upgrade the plan to add more.", code="plan_limit")
+        cap, source = employee_cap(org)
+        if source == "licence":
+            raise BusinessRuleError(f"Your licence allows up to {cap} active employees. Contact your ShineLight "
+                                    f"provider to extend it.", code="licence_limit")
+        raise BusinessRuleError(f"Your {org.plan.name} plan allows up to {cap} active employees. Upgrade the plan "
+                                f"to add more.", code="plan_limit")
 
 
 def check_feature_allowed(org, code):
+    label = dict(OrganizationFeature.FEATURES).get(code, code)
+    if not is_cloud():
+        from apps.licensing.services import feature_allowed
+
+        if not feature_allowed(code):
+            raise BusinessRuleError(f"{label} is not included in your licence.", code="licence_feature")
+        return
     if org.plan_id and code not in (org.plan.features or []):
-        raise BusinessRuleError(f"{dict(OrganizationFeature.FEATURES).get(code, code)} is not included in the "
-                                f"{org.plan.name} plan.", code="plan_feature")
+        raise BusinessRuleError(f"{label} is not included in the {org.plan.name} plan.", code="plan_feature")
 
 
 def apply_plan(org, plan):

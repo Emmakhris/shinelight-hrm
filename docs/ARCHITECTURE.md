@@ -33,6 +33,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `selfservice` | `/api/me/...` endpoints for ESS/MSS |
 | `reports` | Dashboard, analytics with KPI definitions, report catalogue, export approvals, scheduled reports; `builder.py` (whitelisted datasets and fields, executed in the viewer's scope; saved as `ReportDefinition`, run as `custom:<id>`); `predictive.py` (turnover and retirement forecasts, rule-based attrition-risk indicators) |
 | `integrations` | API keys, webhooks, deliveries with retry |
+| `licensing` | Self-hosted licences: Ed25519 signature check against `keys.py`, install/state/reminders (`services.py`), read-only middleware after the grace period, vendor commands `licence_keygen`, `issue_licence`, `install_licence` |
 | `sso` | OpenID Connect identity providers per organization, external identities (provider + subject), discovery/start/callback views; `services.py` holds the flow and token verification |
 | `assistant` | Governed AI assistant: conversations and messages (exact API content blocks replayed append-only), `tools.py` (read-only, permission-checked tools), `services.py` (Claude tool loop, redaction, limits, usage, retention purge) |
 | `hospital` | Licences, competency requirements/records, credential checks used by rostering |
@@ -82,4 +83,5 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | Safety: overdue corrective actions, risk assessments due for review | 07:20 |
 | Engagement: close surveys past their closing date | 00:15 |
 | SaaS: trial reminders (3 days before) and suspension of ended trials | 06:05 |
+| Self-hosted: licence expiry reminders (60/30/7/1 days, weekly in grace) | 06:10 |
 | AI assistant: delete conversations past the retention period | 03:40 |

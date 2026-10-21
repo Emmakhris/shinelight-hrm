@@ -26,6 +26,7 @@ import Schedule from "@mui/icons-material/Schedule";
 import School from "@mui/icons-material/School";
 import SupportAgent from "@mui/icons-material/SupportAgent";
 import TrendingUp from "@mui/icons-material/TrendingUp";
+import { LicenceBanner } from "./LicenceBanner";
 import { AppBar, Avatar, Badge, Box, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon,
   ListItemText, ListSubheader, Menu as MuiMenu, MenuItem, Toolbar, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -37,7 +38,7 @@ import NotificationsPopover from "./NotificationsPopover";
 
 const DRAWER = 264;
 
-interface NavItem { label: string; to: string; perm?: string | string[]; feature?: string; scope?: string; employee?: boolean }
+interface NavItem { label: string; to: string; perm?: string | string[]; feature?: string; scope?: string; employee?: boolean; edition?: "self_hosted" | "cloud" }
 interface NavGroup { label: string; icon: ReactNode; items: NavItem[] }
 
 const NAV: NavGroup[] = [
@@ -181,6 +182,7 @@ const NAV: NavGroup[] = [
     { label: "Integrations & API", to: "/admin/integrations", perm: "integrations.manage" },
     { label: "Single sign-on", to: "/admin/sso", perm: "admin.settings" },
     { label: "AI assistant", to: "/admin/assistant", perm: "admin.settings" },
+    { label: "Licence", to: "/admin/licence", perm: "admin.settings", edition: "self_hosted" },
     { label: "Audit trail", to: "/admin/audit", perm: "audit.view" },
   ] },
 ];
@@ -199,7 +201,7 @@ export default function Layout() {
   const inbox = useApi<{ pending: number }>("/workflow/inbox/counts/", undefined, { refetchInterval: 60000 });
 
   const visible = (i: NavItem) => (!i.perm || can(i.perm, i.scope)) && (!i.feature || feature(i.feature))
-    && (!i.employee || !!me?.employee);
+    && (!i.employee || !!me?.employee) && (!i.edition || i.edition === me?.edition);
 
   const drawer = (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -283,6 +285,7 @@ export default function Layout() {
       </Box>
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, width: { md: `calc(100% - ${DRAWER}px)` }, minWidth: 0 }}>
         <Toolbar />
+        {me?.edition === "self_hosted" && <LicenceBanner />}
         <Outlet />
       </Box>
       <NotificationsPopover anchor={notifAnchor} onClose={() => setNotifAnchor(null)} />

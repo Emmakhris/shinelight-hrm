@@ -63,6 +63,7 @@ const NotificationsAdmin = lazy(() => import("./pages/admin/NotificationsAdmin")
 const Integrations = lazy(() => import("./pages/admin/Integrations"));
 const Audit = lazy(() => import("./pages/admin/Audit"));
 const SingleSignOn = lazy(() => import("./pages/admin/SingleSignOn"));
+const Licence = lazy(() => import("./pages/admin/Licence"));
 const AssistantSettings = lazy(() => import("./pages/admin/AssistantSettings"));
 const Assistant = lazy(() => import("./pages/me/Assistant"));
 const HelpDesk = lazy(() => import("./pages/helpdesk/HelpDesk"));
@@ -234,6 +235,7 @@ export default function App() {
           <Route path="admin/integrations" element={g(<Integrations />, "integrations.manage")} />
           <Route path="admin/audit" element={g(<Audit />, "audit.view")} />
           <Route path="admin/sso" element={g(<SingleSignOn />, "admin.settings")} />
+          <Route path="admin/licence" element={g(<Licence />, "admin.settings")} />
           <Route path="admin/assistant" element={g(<AssistantSettings />, "admin.settings")} />
           <Route path="assistant" element={<Assistant />} />
           <Route path="helpdesk" element={<HelpDesk />} />

@@ -13,3 +13,7 @@ frontend/dist/
 # Env
 .env
 *.log
+
+# Licence signing keys and issued licences never belong in the repository
+*.pem
+*.lic

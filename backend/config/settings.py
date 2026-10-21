@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "apps.talent",
     "apps.sso",
     "apps.assistant",
+    "apps.licensing",
 ]
 
 MIDDLEWARE = [
@@ -89,6 +90,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.RequestContextMiddleware",
+    "apps.licensing.middleware.LicenceMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

@@ -37,6 +37,19 @@ create a second organization.
 
 Open `https://<SITE_ADDRESS>` and sign in as the administrator.
 
+### Licence
+
+Until a licence is installed the system runs in evaluation mode (up to 25 active employees). Install the
+customer's `.lic` file under **Administration → Licence**, or on the server:
+
+```bash
+docker compose cp korlebu-2027.lic backend:/tmp/ && docker compose exec backend python manage.py install_licence /tmp/korlebu-2027.lic
+```
+
+The licence is checked on the server; nothing is sent anywhere. Administrators are reminded before it expires.
+After expiry and a grace period the system becomes read-only until a renewal is installed (data stays viewable
+and exportable). How to issue licences: `docs/LICENSING.md`.
+
 ## 3. HTTPS
 
 - **Reachable from the internet** (`TLS_MODE=public`): point the DNS name at the server; Caddy obtains and renews
