@@ -31,7 +31,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `attendance` | Shifts, policies, patterns, roster, clock events, ZKTeco sync, daily processing, OT approval, period summaries |
 | `payroll` | Statutory rule tables, pay elements, **pure calculation engine** (`engine.py`), runs, payslips, loans, adjustments, exports |
 | `selfservice` | `/api/me/...` endpoints for ESS/MSS |
-| `reports` | Dashboard, analytics with KPI definitions, report catalogue, export approvals, scheduled reports |
+| `reports` | Dashboard, analytics with KPI definitions, report catalogue, export approvals, scheduled reports; `builder.py` (whitelisted datasets and fields, executed in the viewer's scope; saved as `ReportDefinition`, run as `custom:<id>`); `predictive.py` (turnover and retirement forecasts, rule-based attrition-risk indicators) |
 | `integrations` | API keys, webhooks, deliveries with retry |
 | `hospital` | Licences, competency requirements/records, credential checks used by rostering |
 | `servicedesk` | Service catalogue, tickets with SLA pause/escalation, knowledge base, CSAT, KPIs |

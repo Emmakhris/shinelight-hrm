@@ -10,6 +10,8 @@ const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Reports = lazy(() => import("./pages/Reports"));
+const ReportBuilder = lazy(() => import("./pages/ReportBuilder"));
+const Forecasts = lazy(() => import("./pages/Forecasts"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const MyRequests = lazy(() => import("./pages/MyRequests"));
 const Delegations = lazy(() => import("./pages/Delegations"));
@@ -163,6 +165,8 @@ export default function App() {
           <Route path="dashboard" element={g(<Dashboard />, "reports.view")} />
           <Route path="analytics" element={g(<Analytics />, "reports.view")} />
           <Route path="reports" element={g(<Reports />, "reports.view")} />
+          <Route path="reports/builder" element={g(<ReportBuilder />, "reports.view")} />
+          <Route path="forecasts" element={g(<Forecasts />, "reports.view")} />
           <Route path="inbox" element={<Inbox />} />
           <Route path="me/requests" element={<MyRequests />} />
           <Route path="delegations" element={<Delegations />} />

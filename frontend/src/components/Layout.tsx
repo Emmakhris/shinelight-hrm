@@ -127,6 +127,8 @@ const NAV: NavGroup[] = [
     { label: "HR dashboard", to: "/dashboard", perm: "reports.view" },
     { label: "Workforce analytics", to: "/analytics", perm: "reports.view" },
     { label: "Reports", to: "/reports", perm: "reports.view" },
+    { label: "Report builder", to: "/reports/builder", perm: "reports.view" },
+    { label: "Workforce forecasts", to: "/forecasts", perm: "reports.view" },
   ] },
   { label: "People", icon: <BadgeOutlined />, items: [
     { label: "Employees", to: "/employees", perm: "employees.view", scope: "team" },

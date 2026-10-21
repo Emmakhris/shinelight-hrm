@@ -89,6 +89,8 @@ AUDITED = {
     "talent.CareerPath": {},
     "talent.WorkforcePlan": {},
     "talent.Scenario": {},
+    "reports.ReportDefinition": {},
+    "reports.ScheduledReport": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

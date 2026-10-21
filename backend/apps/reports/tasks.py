@@ -15,7 +15,7 @@ def send_scheduled_reports():
     from apps.tenancy.models import Organization
 
     from .models import ScheduledReport
-    from .services import REPORTS
+    from .services import get_report
 
     today = dt.date.today()
     sent = 0
@@ -24,17 +24,18 @@ def send_scheduled_reports():
             for sched in ScheduledReport.objects.filter(is_active=True):
                 due = (sched.frequency == "daily" or (sched.frequency == "weekly" and today.weekday() == 0)
                        or (sched.frequency == "monthly" and today.day == 1))
-                if not due or sched.report_code not in REPORTS:
+                if not due:
                     continue
-                name, fn = REPORTS[sched.report_code]
                 for user in sched.recipients.filter(is_active=True):
-                    if not user.email or not has_perm(user, "reports.view"):
+                    report = get_report(sched.report_code, user)       # custom reports must be shared with them
+                    if report is None or not user.email or not has_perm(user, "reports.view"):
                         continue
+                    name, fn = report
                     headers, rows = fn(user, sched.params)
                     msg = EmailMessage(f"[ShineLight HRM] {sched.name} - {today:%d/%m/%Y}",
                                        f"Attached: {name}. This report contains confidential HR information.",
                                        settings.DEFAULT_FROM_EMAIL, [user.email])
-                    msg.attach(f"{sched.report_code}-{today:%Y%m%d}.xlsx", xlsx_bytes(headers, rows, name[:31]),
+                    msg.attach(f"{sched.report_code.replace(':', '-')}-{today:%Y%m%d}.xlsx", xlsx_bytes(headers, rows, name[:31]),
                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                     msg.send()
                     sent += 1

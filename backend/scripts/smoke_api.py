@@ -63,6 +63,8 @@ ENDPOINTS = [
     "talent/me/", "talent/assessments/", "talent/assessments/grid/", "talent/assessments/criteria/",
     "talent/succession/", "talent/succession/risk/", "talent/career-paths/", "planning/plans/",
     "planning/plans/1/project/", "planning/lines/", "planning/scenarios/", "planning/establishment/",
+    "reports/definitions/", "reports/definitions/datasets/", "reports/definitions/1/run/",
+    "reports/forecast/turnover/", "reports/forecast/retirement/", "reports/attrition-risk/",
 ]
 
 failures = 0

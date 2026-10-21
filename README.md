@@ -62,6 +62,8 @@ The workflow engine also skips a step when its only approver already approved an
 |---|---|
 | **Talent & succession** | Employee career profiles (aspirations, skills, mobility); nine-box talent reviews where performance is suggested from the latest appraisal and potential must be justified against published criteria with evidence (no opaque labelling); succession plans for critical positions with readiness levels; automatic flags for vacant critical roles, missing or not-ready successors, single-person dependencies and incumbents retiring within two years; bench strength; published career paths with transparent promotion eligibility (time in role, rating, required courses, qualification to verify) |
 | **Workforce planning** | Establishment by department (approved, occupied, vacant, frozen, proposed) with budget vs actual cost; workforce plans by department and role with workload drivers (e.g. nurses per bed); what-if scenarios (attrition, pay rise, growth, department cuts, hiring freeze, budget cap); multi-year projection of retirements, attrition, hires needed and staff cost with employer on-cost read from the statutory rate table; skills shortages; plan approval by the HR Director and finance |
+| **Report builder** | Self-service reports over approved datasets (employees, leave, attendance, training, payslips) with columns, filters, grouping, summaries (count, sum, average, min, max), sorting and charts; derived fields such as tenure and age bands; saved private or shared definitions that always run in the viewer's own data scope; salary and personal fields need their own permission; exports go through the same approval and audit as standard reports and can be scheduled by email |
+| **Predictive analytics** | 12-month turnover forecast by department (trailing turnover smoothed for small departments, with a likely range) and a monthly headcount projection; retirement forecast by year, department and job title, with critical positions losing their incumbent and whether a ready successor exists; transparent attrition-risk indicators (each factor shown with its points and evidence, weights tunable per organization) restricted to a separate permission, hidden from the employee concerned and audit-logged on every view |
 
 See [docs/ROADMAP.md](docs/ROADMAP.md).
 
@@ -99,7 +101,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 106 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning
+cd backend && .venv/Scripts/python -m pytest          # 111 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning, report builder and forecasts
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

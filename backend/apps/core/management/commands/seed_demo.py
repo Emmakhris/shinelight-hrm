@@ -59,6 +59,8 @@ class Command(BaseCommand):
             self._seed_wellbeing(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_planning(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_reports(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -1038,3 +1040,39 @@ class Command(BaseCommand):
                                 salary_increase_percent=D("5"), budget_cap=D("500000"))
         self.stdout.write(f"Planning demo: {SuccessionPlan.objects.count()} succession plans, bench strength "
                           f"{tal.succession_risk()['bench_strength_percent']}%.")
+
+    def _seed_reports(self, org, admin):
+        """Shared report-builder definitions (Phase 4). Idempotent."""
+        from apps.core.context import org_context
+        from apps.reports.models import ReportDefinition
+
+        hrd = get_user_model().objects.get(username="hrdirector")
+        with org_context(org, hrd):
+            for name, spec in (
+                ("Headcount by department and gender", {"dataset": "employees", "group_by": ["department", "gender"],
+                                                        "aggregates": [{"fn": "count"}],
+                                                        "filters": [{"field": "status", "op": "in",
+                                                                     "value": "active,probation,on_leave"}],
+                                                        "chart": "none"}),
+                ("Staff by tenure band", {"dataset": "employees", "group_by": ["tenure_band"],
+                                          "aggregates": [{"fn": "count"}], "chart": "column",
+                                          "filters": [{"field": "status", "op": "in",
+                                                       "value": "active,probation,on_leave"}]}),
+                ("Sick leave in the last 90 days", {"dataset": "leave", "group_by": ["department"],
+                                                    "aggregates": [{"fn": "count"}, {"fn": "sum", "field": "days"}],
+                                                    "filters": [{"field": "leave_type", "op": "contains",
+                                                                 "value": "sick"},
+                                                                {"field": "start_date", "op": "last_days",
+                                                                 "value": "90"}],
+                                                    "sort": "-sum_days", "chart": "bar"}),
+                ("Contracts ending in the next 90 days", {"dataset": "employees",
+                                                          "columns": ["staff_number", "name", "department",
+                                                                      "job_title", "contract_end_date"],
+                                                          "filters": [{"field": "contract_end_date", "op": "gte",
+                                                                       "value": dt.date.today().isoformat()},
+                                                                      {"field": "contract_end_date", "op": "lte",
+                                                                       "value": (dt.date.today() + dt.timedelta(
+                                                                           days=90)).isoformat()}],
+                                                          "sort": "contract_end_date"}),
+            ):
+                ReportDefinition.objects.get_or_create(name=name, defaults={**spec, "visibility": "shared"})

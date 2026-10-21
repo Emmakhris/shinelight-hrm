@@ -346,3 +346,25 @@ REPORTS = {
     "attendance": ("Attendance summary", report_attendance),
     "payroll_cost": ("Payroll cost by department", report_payroll_cost),
 }
+
+
+def custom_definitions(user):
+    """Saved report-builder definitions the user may run: their own plus shared ones."""
+    from .models import ReportDefinition
+
+    return ReportDefinition.objects.filter(Q(created_by=user) | Q(visibility="shared"))
+
+
+def get_report(code, user):
+    """(name, fn(user, params) -> (headers, rows)) for a standard code or `custom:<id>`; None if unknown."""
+    if code in REPORTS:
+        return REPORTS[code]
+    if code.startswith("custom:") and code[7:].isdigit():
+        from . import builder
+
+        definition = custom_definitions(user).filter(pk=int(code[7:])).first()
+        if definition is None:
+            return None
+        spec = definition.spec()
+        return definition.name, lambda u, params: builder.run(spec, u)[:2]
+    return None

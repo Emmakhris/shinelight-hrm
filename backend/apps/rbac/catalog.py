@@ -38,6 +38,8 @@ PERMISSIONS = [
     ("reports.view", "View HR dashboards and reports", False),
     ("reports.export", "Export reports", True),
     ("reports.view_payroll", "View payroll cost reports", True),
+    ("reports.build", "Build, save and share custom reports", False),
+    ("analytics.predictive", "View individual attrition-risk indicators", True),
     ("admin.settings", "Manage organization settings and configuration", False),
     ("admin.users", "Manage user accounts", False),
     ("admin.roles", "Manage roles and permission assignments", True),
@@ -114,7 +116,8 @@ DEFAULT_ROLES = {
          "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
          "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage", "performance.view",
          "performance.manage", "learning.view", "relations.manage", "assets.view", "offboarding.view",
-         "offboarding.manage", "engagement.view", "engagement.manage", "ohs.view", "talent.view", "planning.view"],
+         "offboarding.manage", "engagement.view", "engagement.manage", "ohs.view", "talent.view", "planning.view",
+         "reports.build"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
@@ -141,7 +144,7 @@ DEFAULT_ROLES = {
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
          "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
          "onboarding.view", "performance.view", "learning.view", "offboarding.view", "engagement.view", "ohs.view",
-         "talent.view", "planning.view"],
+         "talent.view", "planning.view", "reports.build"],
     ),
     "line_manager": (
         "Line Manager",
@@ -154,7 +157,7 @@ DEFAULT_ROLES = {
         "Finance Officer",
         "organization",
         ["payroll.view", "reports.view", "reports.view_payroll", "reports.export", "organization.view",
-         "expenses.view", "expenses.pay", "employees.view", "planning.view"],
+         "expenses.view", "expenses.pay", "employees.view", "planning.view", "reports.build"],
     ),
     "training_officer": (
         "Training Officer",

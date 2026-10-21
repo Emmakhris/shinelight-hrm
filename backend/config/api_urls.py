@@ -192,6 +192,7 @@ router.register("payroll/simulate", pay.SimulateViewSet, basename="simulate")
 # reports
 router.register("reports/export-requests", rep.ExportRequestViewSet, basename="export-requests")
 router.register("reports/scheduled", rep.ScheduledReportViewSet, basename="scheduled-reports")
+router.register("reports/definitions", rep.ReportDefinitionViewSet, basename="report-definitions")
 # integrations
 router.register("integrations/api-keys", integ.ApiKeyViewSet, basename="api-keys")
 router.register("integrations/webhooks", integ.WebhookViewSet, basename="webhooks")
@@ -214,6 +215,9 @@ urlpatterns = [
     path("reports/analytics/", rep.AnalyticsView.as_view()),
     path("reports/catalog/", rep.ReportCatalogView.as_view()),
     path("reports/run/<str:code>/", rep.RunReportView.as_view()),
+    path("reports/forecast/turnover/", rep.TurnoverForecastView.as_view()),
+    path("reports/forecast/retirement/", rep.RetirementForecastView.as_view()),
+    path("reports/attrition-risk/", rep.AttritionRiskView.as_view()),
     path("me/profile/", me.ProfileView.as_view()),
     path("me/summary/", me.SummaryView.as_view()),
     path("me/documents/", me.MyDocumentsView.as_view()),
