@@ -140,6 +140,13 @@ class LoginView(APIView):
         if candidate and candidate.is_locked:
             _record_attempt(request, username, candidate, False, "locked")
             return Response({"detail": "Account temporarily locked. Try again later."}, status=status.HTTP_423_LOCKED)
+        from apps.sso.services import password_login_blocked
+
+        if candidate and password_login_blocked(candidate):
+            _record_attempt(request, username, candidate, False, "sso_required")
+            return Response({"detail": "Your organization signs in with single sign-on. Use "
+                                       "\"Sign in with single sign-on\" and your work email.", "code": "sso_required"},
+                            status=status.HTTP_403_FORBIDDEN)
         user = authenticate(request, username=candidate.username if candidate else username,
                             password=s.validated_data["password"])
         if user is None:

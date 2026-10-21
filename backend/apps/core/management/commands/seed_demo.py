@@ -35,7 +35,7 @@ class Command(BaseCommand):
             raise CommandError("Refusing to seed demo data with DEBUG=False (use --force on a test server only).")
         random.seed(42)
         org, admin = setup_organization("ShineLight Health Services", "shinelight", "admin", DEMO_PASSWORD,
-                                        "admin@shinelight.local", ["payroll", "hospital", "sms", "geofence"],
+                                        "admin@shinelight.local", ["payroll", "hospital", "sms", "geofence", "ai_assistant"],
                                         require_mfa=False)
         org.address = "12 Independence Avenue\nRidge, Accra\nGA-012-3456"
         org.phone = "0302 123 456"

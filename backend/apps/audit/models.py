@@ -35,6 +35,7 @@ class AuditLog(models.Model):
         ("permission", "Permission change"),
         ("config", "Configuration change"),
         ("download", "Document download"),
+        ("ai", "AI assistant use"),
     ]
 
     organization = models.ForeignKey("tenancy.Organization", null=True, on_delete=models.PROTECT, related_name="+")

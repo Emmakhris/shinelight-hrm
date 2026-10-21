@@ -83,6 +83,8 @@ AUDITED = {
     "safety.CorrectiveAction": {},
     "safety.RiskAssessment": {},
     "safety.OHRecord": {"sensitive": ["clinical_notes"]},
+    "sso.IdentityProvider": {"sensitive": ["client_secret"]},
+    "sso.ExternalIdentity": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

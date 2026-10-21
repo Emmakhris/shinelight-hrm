@@ -71,6 +71,8 @@ INSTALLED_APPS = [
     "apps.offboarding",
     "apps.engagement",
     "apps.safety",
+    "apps.sso",
+    "apps.assistant",
 ]
 
 MIDDLEWARE = [
@@ -229,6 +231,12 @@ HUBTEL_CLIENT_SECRET = env("HUBTEL_CLIENT_SECRET", default="")
 ARKESEL_API_KEY = env("ARKESEL_API_KEY", default="")
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+
+# ---------------------------------------------------------------- single sign-on / AI assistant
+# Base URL the identity provider redirects back to (FRONTEND_URL when the frontend proxies /api).
+SSO_REDIRECT_BASE = env("SSO_REDIRECT_BASE", default="")
+# The AI assistant stays unavailable until a key is set AND the organization enables the ai_assistant feature.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
 # ---------------------------------------------------------------- security
 SESSION_COOKIE_SECURE = not DEBUG

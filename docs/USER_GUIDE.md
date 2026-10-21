@@ -38,6 +38,12 @@
 - **Team learning:** nominate staff for courses, set up mentoring, turn appraisal gaps into development goals, and rate how completed training is being applied (you are reminded 30 days after completion).
 - **Onboarding tasks:** day-one welcome, departmental induction and probation objectives for your new starters.
 
+## Signing in with single sign-on and the HR assistant
+
+If your organization uses Microsoft 365 or another identity provider, choose **Sign in with single sign-on** on the login page and enter your work email. If the **Ask HR assistant** menu item is shown, you can ask it about HR policies (and, if your organization allows it, your own leave, pay and requests). Always check the linked source; the assistant cannot submit or approve anything, and it never decides on pay, promotion, discipline or dismissal. Don't type ID, bank or medical details.
+
+**Administrators:** set up identity providers under Administration → Single sign-on (register the redirect URI shown there with your provider first). The assistant needs the "AI HR assistant" feature switched on and an `ANTHROPIC_API_KEY` on the server; choose under Administration → AI assistant whether it may read only approved policies or also the user's own records. Answers draw on published service-desk knowledge-base articles, so keep those current.
+
 ## HR officers
 
 - **New employee:** Employees → *New employee* (choose an approved position). Then add bank details, upload documents and *Create user account*.

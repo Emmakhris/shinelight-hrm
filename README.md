@@ -54,7 +54,16 @@ The workflow engine also skips a step when its only approver already approved an
 | **Assets** | Register of tagged assets (laptops, phones, access cards) and issue of untagged uniforms/PPE; employee acknowledgment; transfers; loss/damage reporting; return with condition and recovery through payroll; outstanding-items dashboard including leavers |
 | **Offboarding** | Resignation through self-service, other exits recorded by HR; notice period per the Labour Act with shortfall shown; approval (involuntary exits need the HR Director); clearance across supervisor, IT, admin, finance, HR and payroll with automatic checks (assets returned, loans and advances, exit interview, final payroll run); access revoked on the last day unless an approved extension applies; dismissals from ER cases start offboarding automatically; certificate of service; exit interviews; turnover analytics and upcoming retirements |
 | **Engagement** | Engagement, pulse, stay and wellbeing surveys; anonymous responses stored with no link to the person; results only for groups of 5+ (smaller groups combined), shuffled unattributed comments; engagement index, eNPS, themes and workload/burnout risk by department; managers see their own area only; action plans; recognition wall; suggestion box (anonymous option, votes, HR responses); wellness, welfare and EAP events with registration |
-| **Health & safety** | Incident and near-miss reporting by anyone (urgent alerts for needlestick/splash exposures and serious incidents); investigation, root cause, lost time, reportable-incident tracking; corrective actions with overdue reminders; 5x5 risk assessments with review dates; inspections with checklists; LTIFR, days since last lost-time injury and trends. **Occupational health records are a separate restricted zone** (OH professionals only, not even the HR Director): HR and rostering see only the fitness outcome and work restrictions, and staff marked unfit cannot be rostered for clinical duties | See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Health & safety** | Incident and near-miss reporting by anyone (urgent alerts for needlestick/splash exposures and serious incidents); investigation, root cause, lost time, reportable-incident tracking; corrective actions with overdue reminders; 5x5 risk assessments with review dates; inspections with checklists; LTIFR, days since last lost-time injury and trends. **Occupational health records are a separate restricted zone** (OH professionals only, not even the HR Director): HR and rostering see only the fitness outcome and work restrictions, and staff marked unfit cannot be rostered for clinical duties |
+
+### Identity and AI (Phase 4, on `main`)
+
+| Area | Highlights |
+|---|---|
+| **Single sign-on** | OpenID Connect sign-in with Microsoft 365 / Entra ID, Google Workspace, Okta or any OIDC provider (authorization code + PKCE, signed state, ID-token signature, issuer, audience and nonce checks); "Sign in with single sign-on" by work email; staff matched to their existing account by work email and then by the provider's stable subject; optional automatic logins for existing active employees; per-domain "SSO only" with a break-glass password route for administrators; client secrets encrypted at rest |
+| **Governed AI assistant** | Off by default; HR policy Q&A answered only from published knowledge-base articles with sources listed; optional access to the user's own leave balances, payslip summary, profile and pending requests, and aggregate reports within their permissions; read-only, permission-aware tools (the model never queries the database); identifiers typed by users redacted before sending; never decides or recommends hiring, dismissal, promotion, discipline or pay; private conversations purged after a retention period; daily limits; feedback; usage (not content) in the audit trail. Uses Claude via the Anthropic API when `ANTHROPIC_API_KEY` is set |
+
+See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -90,7 +99,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 101 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety
+cd backend && .venv/Scripts/python -m pytest          # 108 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, single sign-on, AI assistant
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

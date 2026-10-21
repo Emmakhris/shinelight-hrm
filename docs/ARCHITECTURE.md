@@ -33,6 +33,8 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `selfservice` | `/api/me/...` endpoints for ESS/MSS |
 | `reports` | Dashboard, analytics with KPI definitions, report catalogue, export approvals, scheduled reports |
 | `integrations` | API keys, webhooks, deliveries with retry |
+| `sso` | OpenID Connect identity providers per organization, external identities (provider + subject), discovery/start/callback views; `services.py` holds the flow and token verification |
+| `assistant` | Governed AI assistant: conversations and messages (exact API content blocks replayed append-only), `tools.py` (read-only, permission-checked tools), `services.py` (Claude tool loop, redaction, limits, usage, retention purge) |
 | `hospital` | Licences, competency requirements/records, credential checks used by rostering |
 | `servicedesk` | Service catalogue, tickets with SLA pause/escalation, knowledge base, CSAT, KPIs |
 | `expenses` | Per diem, travel requests and advances, expense claims, budgets, settlement via payroll |

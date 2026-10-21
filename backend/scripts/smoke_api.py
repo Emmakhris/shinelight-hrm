@@ -30,6 +30,7 @@ ENDPOINTS = [
     "payroll/loans/", "payroll/payslips/", "reports/dashboard/", "reports/analytics/", "reports/catalog/",
     "reports/run/headcount/", "reports/run/expiries/", "reports/run/attendance/", "reports/export-requests/",
     "admin/users/", "admin/roles/", "admin/permissions/", "admin/role-assignments/", "admin/holidays/",
+    "admin/sso-providers/", "assistant/status/", "assistant/conversations/", "assistant/settings/",
     "admin/login-attempts/", "organization/", "audit/logs/", "audit/logs/verify/", "audit/logs/access-review/",
     "integrations/webhooks/", "integrations/api-keys/", "hospital/licenses/", "hospital/credentials/",
     "hospital/competency-requirements/", "users/lookup/",
