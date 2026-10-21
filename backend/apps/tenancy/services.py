@@ -17,7 +17,7 @@ from rest_framework import exceptions
 from apps.core.exceptions import BusinessRuleError
 
 from .models import Organization, OrganizationFeature, Plan
-from .resolver import RESERVED_CODES, forget, request_tenant
+from .resolver import RESERVED_CODES, forget, is_cloud, request_tenant
 
 CODE_RE = re.compile(r"^[a-z][a-z0-9-]{2,39}$")
 # Endpoints an account with no organization (a platform operator) may call.
@@ -81,6 +81,8 @@ def provision(name, code, admin_username, admin_email, admin_password=None, plan
 
     from apps.core.setup import setup_organization
 
+    if not is_cloud():
+        raise BusinessRuleError("Adding organizations is only available in the cloud edition.", code="edition")
     code = validate_code(code)
     User = get_user_model()
     if User.objects.filter(username__iexact=admin_username).exists():

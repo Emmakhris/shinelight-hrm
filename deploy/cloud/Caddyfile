@@ -1,0 +1,25 @@
+# HTTPS for every organization (cloud edition).
+# Certificates are obtained on demand the first time a host is visited - for <code>.SAAS_BASE_DOMAIN and for
+# customers' custom domains alike - but only after the backend confirms the host belongs to an organization
+# (GET /api/public/tls-check/?domain=...). That stops anyone from making the server request certificates for
+# random names. No wildcard certificate or DNS API credentials are needed.
+
+{
+	email {$ACME_EMAIL}
+	on_demand_tls {
+		ask http://backend:8000/api/public/tls-check/
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode gzip
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy frontend:80
+}
+
+http:// {
+	redir https://{host}{uri} permanent
+}

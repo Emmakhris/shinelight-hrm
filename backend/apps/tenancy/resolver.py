@@ -49,9 +49,14 @@ def org_for_host(host):
     return Organization.objects.filter(pk=org_id).first() if org_id else None
 
 
+def is_cloud():
+    return getattr(settings, "DEPLOYMENT_MODE", "self_hosted") == "cloud"
+
+
 def request_tenant(request):
+    """The organization the host name selects (cloud edition only; self-hosted serves its one organization)."""
     if not hasattr(request, "_tenant"):
-        request._tenant = org_for_host(_host(request))
+        request._tenant = org_for_host(_host(request)) if is_cloud() else None
     return request._tenant
 
 

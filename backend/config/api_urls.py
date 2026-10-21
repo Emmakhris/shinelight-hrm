@@ -260,6 +260,7 @@ urlpatterns = [
     path("public/offers/<str:token>/", rec.OfferResponseView.as_view()),
     path("public/tenant/", plat.TenantInfoView.as_view()),
     path("public/signup/", plat.SignupView.as_view()),
+    path("public/tls-check/", plat.TlsCheckView.as_view()),
     path("sso/discover/", sso.DiscoverView.as_view()),
     path("sso/<int:pk>/start/", sso.StartView.as_view()),
     path("sso/callback/", sso.CallbackView.as_view()),

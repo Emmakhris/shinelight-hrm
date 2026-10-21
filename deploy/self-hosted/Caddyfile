@@ -1,0 +1,18 @@
+# HTTPS in front of ShineLight HRM (self-hosted edition).
+# TLS_MODE=public   -> free Let's Encrypt certificate (the server must be reachable from the internet on 80/443)
+# TLS_MODE=internal -> Caddy's own certificate authority, for servers only reachable on the office network.
+#                      Install the root certificate on staff devices (see INSTALL.md) to avoid browser warnings.
+
+(tls-public) {
+}
+
+(tls-internal) {
+	tls internal
+}
+
+{$SITE_ADDRESS} {
+	import tls-{$TLS_MODE}
+	encode gzip
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy frontend:80
+}

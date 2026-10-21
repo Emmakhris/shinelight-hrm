@@ -39,9 +39,17 @@ class SsoError(Exception):
         self.code = code
 
 
-def redirect_uri():
-    base = getattr(settings, "SSO_REDIRECT_BASE", "") or settings.FRONTEND_URL
-    return f"{base.rstrip('/')}/api/sso/callback/"
+def redirect_uri(request=None, organization=None):
+    """Where the identity provider sends the user back: the address they signed in on, so the session cookie
+    lands on their organization's own host (cloud subdomain or custom domain). SSO_REDIRECT_BASE overrides."""
+    base = getattr(settings, "SSO_REDIRECT_BASE", "")
+    if not base and request is not None:
+        return request.build_absolute_uri("/api/sso/callback/")
+    if not base and organization is not None:
+        from apps.tenancy.services import login_url
+
+        base = login_url(organization).rsplit("/login", 1)[0]
+    return f"{(base or settings.FRONTEND_URL).rstrip('/')}/api/sso/callback/"
 
 
 def provider_for_email(email):
@@ -115,7 +123,7 @@ def jwks(provider, uri):
 def test_provider(provider):
     doc = discovery(provider)
     return {"issuer": doc["issuer"], "authorization_endpoint": doc["authorization_endpoint"],
-            "token_endpoint": doc["token_endpoint"], "redirect_uri": redirect_uri()}
+            "token_endpoint": doc["token_endpoint"], "redirect_uri": redirect_uri(organization=provider.organization)}
 
 
 # ---------------------------------------------------------------- flow
@@ -123,7 +131,7 @@ def _b64(data: bytes):
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
 
 
-def start(provider, next_path="/"):
+def start(provider, next_path="/", request=None):
     """Return (authorization_url, signed_state_cookie_value)."""
     doc = discovery(provider)
     verifier = _b64(secrets.token_bytes(32))
@@ -131,7 +139,7 @@ def start(provider, next_path="/"):
     if not next_path.startswith("/") or next_path.startswith("//"):
         next_path = "/"
     params = {
-        "response_type": "code", "client_id": provider.client_id, "redirect_uri": redirect_uri(),
+        "response_type": "code", "client_id": provider.client_id, "redirect_uri": redirect_uri(request),
         "scope": provider.scopes, "state": state, "nonce": nonce,
         "code_challenge": _b64(hashlib.sha256(verifier.encode()).digest()), "code_challenge_method": "S256",
     }
@@ -151,11 +159,11 @@ def read_state(cookie, state):
     return data
 
 
-def exchange_code(provider, code, verifier):
+def exchange_code(provider, code, verifier, request=None):
     doc = discovery(provider)
     try:
         r = requests.post(doc["token_endpoint"], timeout=HTTP_TIMEOUT, data={
-            "grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri(),
+            "grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri(request),
             "client_id": provider.client_id, "client_secret": provider.client_secret or "",
             "code_verifier": verifier})
         body = r.json()

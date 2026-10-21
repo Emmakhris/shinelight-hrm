@@ -1,6 +1,6 @@
 import getpass
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.core.setup import setup_organization
 
@@ -19,8 +19,11 @@ class Command(BaseCommand):
         password = None
         if opts["admin"]:
             password = getpass.getpass(f"Password for {opts['admin']}: ")
-        org, admin = setup_organization(opts["name"], opts["code"], opts["admin"], password, opts["email"],
-                                        [f.strip() for f in opts["features"].split(",") if f.strip()])
+        try:
+            org, admin = setup_organization(opts["name"], opts["code"], opts["admin"], password, opts["email"],
+                                            [f.strip() for f in opts["features"].split(",") if f.strip()])
+        except ValueError as exc:
+            raise CommandError(str(exc)) from exc
         self.stdout.write(self.style.SUCCESS(f"Organization '{org.name}' ready."))
         self.stdout.write(self.style.WARNING(
             "Statutory PAYE/SSNIT tables are seeded UNVERIFIED. Review Payroll > Statutory settings before go-live."))

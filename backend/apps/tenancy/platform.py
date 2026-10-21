@@ -4,6 +4,7 @@ have no organization, so every HR endpoint refuses them, and nothing here return
 from django.conf import settings
 from rest_framework import permissions, serializers, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
@@ -19,6 +20,8 @@ class IsPlatformAdmin(permissions.BasePermission):
     message = "Platform operators only."
 
     def has_permission(self, request, view):
+        if not services.is_cloud():
+            raise NotFound()                       # the console doesn't exist in the self-hosted edition
         return services.is_platform_admin(request.user)
 
 
@@ -149,13 +152,34 @@ class TenantInfoView(APIView):
     def get(self, request):
         from apps.sso.models import IdentityProvider
 
-        org = services.request_tenant(request)
+        org = services.request_tenant(request) if services.is_cloud() else Organization.get_default()
         if org is None:
-            return Response({"organization": None, "signup": bool(getattr(settings, "SAAS_SIGNUP_ENABLED", False))})
+            return Response({"organization": None, "signup": signup_enabled()})
         return Response({"organization": {
             "name": org.name, "code": org.code, "logo": org.logo.url if org.logo else None, "active": org.is_active,
             "sso": IdentityProvider.all_objects.filter(organization=org, is_active=True).exists()},
             "signup": False})
+
+
+def signup_enabled():
+    return services.is_cloud() and bool(getattr(settings, "SAAS_SIGNUP_ENABLED", False))
+
+
+class TlsCheckView(APIView):
+    """Caddy's on-demand TLS `ask` endpoint (cloud edition): a certificate is only issued for the base domain
+    and hosts that belong to an existing organization, so nobody can make the server request certificates for
+    arbitrary names."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        from .resolver import org_for_host
+
+        domain = (request.query_params.get("domain") or "").strip().lower().rstrip(".")
+        base = (getattr(settings, "SAAS_BASE_DOMAIN", "") or "").lower()
+        ok = services.is_cloud() and bool(domain) and (domain in (base, f"www.{base}") or org_for_host(domain) is not None)
+        return Response({"ok": ok}, status=200 if ok else 404)
 
 
 class SignupSerializer(serializers.Serializer):
@@ -177,13 +201,12 @@ class SignupView(APIView):
     throttle_scope = "apply"
 
     def get(self, request):
-        return Response({"enabled": bool(getattr(settings, "SAAS_SIGNUP_ENABLED", False)),
-                         "base_domain": getattr(settings, "SAAS_BASE_DOMAIN", "")})
+        return Response({"enabled": signup_enabled(), "base_domain": getattr(settings, "SAAS_BASE_DOMAIN", "")})
 
     def post(self, request):
         from django.contrib.auth import password_validation
 
-        if not getattr(settings, "SAAS_SIGNUP_ENABLED", False):
+        if not signup_enabled():
             return Response({"detail": "Sign-up is not available."}, status=404)
         s = SignupSerializer(data=request.data)
         s.is_valid(raise_exception=True)

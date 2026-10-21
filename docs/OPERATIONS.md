@@ -1,5 +1,8 @@
 # Operations runbook
 
+> Edition-specific guides: [self-hosted install](../deploy/self-hosted/INSTALL.md) and
+> [cloud operations](../deploy/cloud/OPERATIONS.md). This runbook covers what both have in common.
+
 ## 1. Server
 
 - **VPS:** Ubuntu 24.04 LTS, 4 vCPU / 8 GB RAM / 80 GB SSD (comfortably serves about 2,000 employees).

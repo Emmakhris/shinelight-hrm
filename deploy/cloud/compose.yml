@@ -1,0 +1,42 @@
+# Cloud edition: multi-organization SaaS that you host.
+# Used together with the root docker-compose.yml through COMPOSE_FILE in .env (see env.example).
+services:
+  db:
+    environment:
+      APP_DB_USER: ${APP_DB_USER:-shinelight_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+    volumes:
+      # creates the non-superuser role the application connects as (row-level security never applies to
+      # superusers); runs only when the database volume is first created
+      - ./deploy/cloud/initdb:/docker-entrypoint-initdb.d:ro
+
+  backend:
+    environment:
+      DEPLOYMENT_MODE: cloud
+      DB_ROW_LEVEL_SECURITY: "True"
+
+  worker:
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency", "${WORKER_CONCURRENCY:-4}"]
+
+  frontend:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./deploy/cloud/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  caddydata:
+  caddyconfig:

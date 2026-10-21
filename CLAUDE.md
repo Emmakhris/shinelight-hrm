@@ -4,7 +4,7 @@ ShineLight HRM is an enterprise HRMS for Ghanaian organizations.
 - **Backend:** Django 5 + DRF + PostgreSQL + Celery/Redis in `backend/`.
 - **Frontend:** React 18 + TypeScript + MUI PWA in `frontend/`.
 - **Deployment:** Docker Compose.
-- It runs for one organization or as **multi-organization SaaS** (this branch): never add single-tenant assumptions.
+- Two editions from one codebase, chosen by `DEPLOYMENT_MODE`: `self_hosted` (one organization on the customer's server; no operator console, sign-up or host routing; a second organization is refused) and `cloud` (multi-organization SaaS). Install kits in `deploy/`. Never add single-tenant assumptions, and never fork the code per edition: gate behaviour on `tenancy.resolver.is_cloud()`.
 
 Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: `docs/ARCHITECTURE.md`.
 
@@ -28,7 +28,7 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 127 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 129 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)

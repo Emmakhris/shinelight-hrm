@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 
 
 def _to_login(code):
-    return HttpResponseRedirect(f"{settings.FRONTEND_URL.rstrip('/')}/login?sso_error={urllib.parse.quote(code)}")
+    # relative: stay on the organization's own host
+    return HttpResponseRedirect(f"/login?sso_error={urllib.parse.quote(code)}")
 
 
 class DiscoverView(APIView):
@@ -51,7 +52,7 @@ class StartView(APIView):
         if p is None or not p.organization.is_active:
             return _to_login("unknown_provider")
         try:
-            url, cookie = services.start(p, request.query_params.get("next", "/"))
+            url, cookie = services.start(p, request.query_params.get("next", "/"), request)
         except services.SsoError as exc:
             log.warning("SSO start failed for provider %s: %s", p.pk, exc)
             return _to_login(exc.code)
@@ -78,7 +79,7 @@ class CallbackView(APIView):
             return _to_login("unknown_provider")
         with org_context(p.organization):
             try:
-                token = services.exchange_code(p, q.get("code", ""), state["v"])
+                token = services.exchange_code(p, q.get("code", ""), state["v"], request)
                 claims = services.verify_id_token(p, token, state["n"])
                 user = services.resolve_user(p, claims)
             except services.SsoError as exc:
@@ -90,7 +91,7 @@ class CallbackView(APIView):
             user.save(update_fields=["failed_login_count", "last_login"])
             _record_attempt(request, user.username, user, True, "sso")
             audit.log("login", user, {"method": "sso", "provider": p.name}, actor=user, organization=p.organization)
-        resp = HttpResponseRedirect(settings.FRONTEND_URL.rstrip("/") + state.get("next", "/"))
+        resp = HttpResponseRedirect(state.get("next", "/"))
         resp.delete_cookie(services.STATE_COOKIE, path="/api/sso/")
         return _set_auth_cookies(resp, user)
 
@@ -108,7 +109,7 @@ class IdentityProviderSerializer(TenantSerializer):
         return bool(obj.client_secret)
 
     def get_redirect_uri(self, obj):
-        return services.redirect_uri()
+        return services.redirect_uri(organization=obj.organization)
 
     def get_linked_users(self, obj):
         return obj.identities.count()

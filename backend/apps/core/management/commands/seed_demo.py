@@ -64,7 +64,8 @@ class Command(BaseCommand):
             self._seed_planning(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_reports(org, admin)
-        self._seed_platform(org)
+        if settings.DEPLOYMENT_MODE == "cloud":
+            self._seed_platform(org)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 

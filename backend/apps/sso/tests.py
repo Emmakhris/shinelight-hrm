@@ -61,7 +61,7 @@ def test_sso_sign_in_links_existing_user_and_sets_session(idp, make_employee, ma
     user = make_user("ama", ("employee",), employee=emp)
     c = APIClient()
     r = _sign_in(c, idp)
-    assert r.status_code == 302 and r["Location"] == "http://hr.test/leave"
+    assert r.status_code == 302 and r["Location"] == "/leave"
     assert settings.AUTH_COOKIE_ACCESS in r.cookies
     assert ExternalIdentity.objects.get(subject="sub-1").user == user
     assert LoginAttempt.objects.filter(user=user, success=True, reason="sso").exists()
@@ -69,7 +69,7 @@ def test_sso_sign_in_links_existing_user_and_sets_session(idp, make_employee, ma
     assert me.status_code == 200 and me.json()["username"] == "ama"
     # next time the stable subject is used even if the email changed at the IdP
     r = _sign_in(APIClient(), idp, email="ama.new@hospital.test")
-    assert r["Location"] == "http://hr.test/leave"
+    assert r["Location"] == "/leave"
 
 
 def test_sso_rejects_tampering_and_unknown_people(idp, make_employee):
@@ -94,7 +94,7 @@ def test_sso_rejects_tampering_and_unknown_people(idp, make_employee):
     idp["provider"].auto_create_accounts = True
     idp["provider"].save()
     r = _sign_in(APIClient(), idp, sub="x3", email="esi@hospital.test")
-    assert r["Location"] == "http://hr.test/leave"
+    assert r["Location"] == "/leave"
     from apps.employees.models import Employee
 
     esi = Employee.objects.get(work_email="esi@hospital.test")

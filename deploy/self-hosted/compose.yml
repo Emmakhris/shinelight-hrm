@@ -1,0 +1,30 @@
+# Self-hosted edition: one organization on the customer's own server.
+# Used together with the root docker-compose.yml through COMPOSE_FILE in .env (see env.example),
+# so plain `docker compose ...` commands and scripts/backup.sh work unchanged.
+services:
+  backend:
+    environment:
+      DEPLOYMENT_MODE: self_hosted
+
+  frontend:
+    ports: !reset []            # Caddy below is the only thing listening on 80/443
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in .env}
+      TLS_MODE: ${TLS_MODE:-public}
+    volumes:
+      - ./deploy/self-hosted/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  caddydata:
+  caddyconfig:

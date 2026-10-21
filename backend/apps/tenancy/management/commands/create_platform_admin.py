@@ -12,6 +12,10 @@ class Command(BaseCommand):
         parser.add_argument("--email", default="")
 
     def handle(self, *args, **opts):
+        from django.conf import settings
+
+        if settings.DEPLOYMENT_MODE != "cloud":
+            raise CommandError("Platform operators exist only in the cloud edition (DEPLOYMENT_MODE=cloud).")
         User = get_user_model()
         if User.objects.filter(username__iexact=opts["username"]).exists():
             raise CommandError("That username is already in use.")

@@ -30,6 +30,7 @@ def two_orgs(org, make_user, make_employee, settings):
     from apps.servicedesk.models import KnowledgeArticle
 
     settings.ALLOWED_HOSTS = ["*"]
+    settings.DEPLOYMENT_MODE = "cloud"
     make_employee(first="Ama")
     hrd = make_user("hrd_a", ("hr_director", "sys_admin"))
     beta, badmin = setup_organization("Beta Clinic", "beta", "beta_admin", "Passw0rd!xyz", "it@beta.test",
@@ -274,6 +275,7 @@ def test_row_level_security_backstop(org, settings):
     from apps.organization.models import Department
     from apps.tenancy import rls
 
+    settings.DEPLOYMENT_MODE = "cloud"
     beta, _ = setup_organization("Beta Clinic", "beta", features=["payroll"], require_mfa=False)
     Department.all_objects.create(organization=beta, code="ZZB", name="B only")
     settings.DB_ROW_LEVEL_SECURITY = True
@@ -288,3 +290,45 @@ def test_row_level_security_backstop(org, settings):
             assert Department.all_objects.filter(organization=beta).exists()
     finally:
         rls.remove()
+
+
+def test_self_hosted_edition_serves_one_organization(org, settings, make_user):
+    """On a customer's own server there is no operator console, sign-up or host routing, and no second
+    organization can be created."""
+    from django.contrib.auth import get_user_model
+
+    from apps.core.setup import setup_organization
+    from apps.tenancy import services
+
+    settings.DEPLOYMENT_MODE = "self_hosted"
+    settings.ALLOWED_HOSTS = ["*"]
+    settings.SAAS_SIGNUP_ENABLED = True
+    with pytest.raises(ValueError):
+        setup_organization("Second", "second")
+    with pytest.raises(BusinessRuleError):
+        services.provision("Second", "second", "second_admin", "a@b.test")
+    setup_organization("Test Org", "test")            # refreshing the existing organization still works
+    c = APIClient()
+    assert c.post("/api/public/signup/", {}, format="json").status_code == 404
+    assert c.get("/api/public/signup/").json()["enabled"] is False
+    assert c.get("/api/public/tls-check/", {"domain": "test.example.com"}).status_code == 404
+    # the login page shows the organization whatever host name the server is reached by
+    assert APIClient(HTTP_HOST="hr.customer.local").get("/api/public/tenant/").json()["organization"]["name"] == "Test Org"
+    op = get_user_model().objects.create_user("operator", "", "Passw0rd!xyz", organization=None, is_platform_admin=True)
+    assert bearer(op).get("/api/platform/organizations/").status_code == 404
+    # any host name works for the organization's own users
+    hrd = make_user("hrd", ("hr_director",))
+    assert bearer(hrd, "anything.localhost").get("/api/employees/").status_code == 200
+    assert c.get("/api/health/").json()["edition"] == "self_hosted"
+
+
+def test_tls_check_only_vouches_for_known_hosts(two_orgs, settings):
+    settings.SAAS_BASE_DOMAIN = "shinelighthrm.test"
+    c = APIClient()
+    assert c.get("/api/public/tls-check/", {"domain": "beta.shinelighthrm.test"}).status_code == 200
+    assert c.get("/api/public/tls-check/", {"domain": "shinelighthrm.test"}).status_code == 200
+    assert c.get("/api/public/tls-check/", {"domain": "nosuch.shinelighthrm.test"}).status_code == 404
+    assert c.get("/api/public/tls-check/", {"domain": "evil.example.com"}).status_code == 404
+    two_orgs["b"].domain = "hr.beta.test"
+    two_orgs["b"].save()
+    assert c.get("/api/public/tls-check/", {"domain": "hr.beta.test"}).status_code == 200

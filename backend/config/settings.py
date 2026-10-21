@@ -8,6 +8,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -238,6 +239,13 @@ FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 SSO_REDIRECT_BASE = env("SSO_REDIRECT_BASE", default="")
 # The AI assistant stays unavailable until a key is set AND the organization enables the ai_assistant feature.
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
+# ---------------------------------------------------------------- edition
+# self_hosted: one organization on the customer's own server (no operator console, sign-up or host routing).
+# cloud: multi-organization SaaS hosted by you. Defaults to cloud in development so the demo shows both.
+DEPLOYMENT_MODE = env("DEPLOYMENT_MODE", default="cloud" if DEBUG else "self_hosted")
+if DEPLOYMENT_MODE not in ("self_hosted", "cloud"):
+    raise ImproperlyConfigured("DEPLOYMENT_MODE must be 'self_hosted' or 'cloud'.")
 
 # ---------------------------------------------------------------- multi-organization (SaaS)
 # Organizations are reached at <code>.<SAAS_BASE_DOMAIN> (and <code>.localhost in development) or their own

@@ -4,6 +4,7 @@ and the demo seeder. Statutory figures are seeded unverified and must be checked
 import datetime as dt
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 
 from apps.core.context import org_context
@@ -565,6 +566,10 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
     from apps.core.ghana import seed_public_holidays
     from apps.rbac.models import RoleAssignment
 
+    if getattr(settings, "DEPLOYMENT_MODE", "self_hosted") != "cloud" and \
+            Organization.objects.exclude(code=code).exists():
+        raise ValueError("The self-hosted edition serves one organization, and one already exists. "
+                         "Use the cloud edition (DEPLOYMENT_MODE=cloud) for several organizations.")
     org, _ = Organization.objects.get_or_create(code=code, defaults={"name": name, "legal_name": name})
     with org_context(org):
         seed_permissions()
