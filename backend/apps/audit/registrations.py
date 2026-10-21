@@ -66,6 +66,11 @@ AUDITED = {
     "performance.AppraisalTemplate": {},
     "performance.Appraisal": {"sensitive": ["manager_comments", "calibration_reason", "employee_comments"]},
     "performance.ImprovementPlan": {"sensitive": ["reason", "outcome_notes"]},
+    "learning.Course": {},
+    "learning.Session": {},
+    "learning.Enrollment": {"exclude": ["modules_done"]},
+    "learning.TrainingBudget": {},
+    "learning.CPDRecord": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

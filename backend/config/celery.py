@@ -54,6 +54,10 @@ app.conf.beat_schedule = {
         "task": "apps.performance.tasks.performance_reminders",
         "schedule": crontab(hour=7, minute=45),
     },
+    "learning-housekeeping": {
+        "task": "apps.learning.tasks.learning_housekeeping",
+        "schedule": crontab(hour=6, minute=30),
+    },
     "scheduled-reports": {
         "task": "apps.reports.tasks.send_scheduled_reports",
         "schedule": crontab(hour=6, minute=0),

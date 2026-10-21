@@ -10,6 +10,7 @@ from apps.employees import views as emp
 from apps.expenses import views as exp
 from apps.hospital import views as hosp
 from apps.integrations import views as integ
+from apps.learning import views as lrn
 from apps.leave import views as leave
 from apps.notifications import views as notif
 from apps.onboarding import views as onb
@@ -107,6 +108,17 @@ router.register("performance/objectives", perf.ObjectiveViewSet, basename="objec
 router.register("performance/feedback", perf.FeedbackViewSet, basename="feedback")
 router.register("performance/plans", perf.PlanViewSet, basename="improvement-plans")
 router.register("performance/milestones", perf.MilestoneViewSet, basename="plan-milestones")
+# learning
+router.register("learning/courses", lrn.CourseViewSet, basename="courses")
+router.register("learning/modules", lrn.ModuleViewSet, basename="course-modules")
+router.register("learning/questions", lrn.QuestionViewSet, basename="quiz-questions")
+router.register("learning/sessions", lrn.SessionViewSet, basename="training-sessions")
+router.register("learning/enrollments", lrn.EnrollmentViewSet, basename="training-enrollments")
+router.register("learning/budgets", lrn.BudgetViewSet, basename="training-budgets")
+router.register("learning/cpd", lrn.CPDViewSet, basename="cpd")
+router.register("learning/cpd-requirements", lrn.CPDRequirementViewSet, basename="cpd-requirements")
+router.register("learning/development-goals", lrn.GoalViewSet, basename="development-goals")
+router.register("learning/mentorships", lrn.MentorshipViewSet, basename="mentorships")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -182,6 +194,9 @@ urlpatterns = [
     path("recruitment/analytics/", rec.AnalyticsView.as_view()),
     path("me/vacancies/", rec.InternalVacancyView.as_view()),
     path("me/onboarding/", onb.MyOnboardingView.as_view()),
+    path("learning/compliance/", lrn.ComplianceView.as_view()),
+    path("learning/needs/", lrn.NeedsView.as_view()),
+    path("learning/report/", lrn.ReportView.as_view()),
     path("public/careers/<slug:org_code>/", rec.CareersView.as_view()),
     path("public/careers/<slug:org_code>/<int:pk>/", rec.CareerVacancyView.as_view()),
     path("public/careers/<slug:org_code>/<int:pk>/apply/", rec.CareerApplyView.as_view()),

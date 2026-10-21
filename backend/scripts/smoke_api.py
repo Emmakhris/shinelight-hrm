@@ -49,6 +49,10 @@ ENDPOINTS = [
     "performance/cycles/2/summary/", "performance/goals/", "performance/appraisals/", "performance/appraisals/?mine=1",
     "performance/appraisals/?team=1", "performance/objectives/", "performance/feedback/", "performance/plans/",
     "performance/plans/?mine=1", "performance/milestones/", "compensation/reviews/",
+    "learning/courses/", "learning/modules/", "learning/questions/", "learning/sessions/", "learning/sessions/?upcoming=1",
+    "learning/enrollments/", "learning/enrollments/?mine=1", "learning/enrollments/?team=1", "learning/budgets/",
+    "learning/cpd/", "learning/cpd/summary/", "learning/cpd-requirements/", "learning/development-goals/",
+    "learning/mentorships/", "learning/compliance/", "learning/needs/", "learning/report/",
 ]
 
 failures = 0

@@ -48,7 +48,9 @@ The workflow engine also skips a step when its only approver already approved an
 
 | **Performance** | Review cycles (annual, half-year, quarterly) with eligibility rules and deadlines; organization and department goals that individual objectives cascade from; role-specific forms (clinical, management, standard) with weighted objectives and competencies on a configurable rating scale; objectives agreed by the supervisor through the approval workflow; mid-year check-in; self-assessment, manager review (allowed once the self-assessment deadline passes) and weighted scoring; anonymous 360 feedback shown only once 3+ people respond; calibration against a target distribution with audited reasons; release and employee acknowledgment (disputes alert HR); improvement plans with milestones, HR approval and outcomes; ratings feed salary-review merit guidelines |
 
-Still to come in Phase 3: learning, employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Learning & development** | Course catalogue (classroom, e-learning, external, on-the-job) with CPD credits and costs; training requests routed to the supervisor and training office (HR Director above GHS 2,000 or beyond the department budget); sessions with capacity, waitlist and attendance; e-learning modules and scored assessments (answers never sent to the browser, 3 attempts); mandatory training by role with refresher periods, assigned automatically and tracked in a compliance matrix; completing a course renews the linked clinical competency used by roster credential checks; CPD records and annual requirements per role; training needs from appraisal competency gaps; individual development plans and mentoring; participant and manager (applied-on-the-job) evaluations; spend vs budget and effectiveness reports |
+
+Still to come in Phase 3: employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -84,7 +86,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 77 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance
+cd backend && .venv/Scripts/python -m pytest          # 82 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

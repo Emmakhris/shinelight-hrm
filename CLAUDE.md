@@ -10,11 +10,11 @@ Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: 
 
 ## Status
 
-- **Done:** Phase 1 + Ghana payroll, and Phase 2 (service desk, travel & expenses, compensation & benefits, e-signature), both on `main`. On the `phase-3` branch: recruitment/ATS, onboarding, probation and performance.
+- **Done:** Phase 1 + Ghana payroll, and Phase 2 (service desk, travel & expenses, compensation & benefits, e-signature), both on `main`. On the `phase-3` branch: recruitment/ATS, onboarding, probation, performance and learning (LMS).
 - **Next:** the rest of Phase 3, in this order:
   1. ~~recruitment/ATS, then onboarding and probation~~ (done);
   2. ~~performance~~ (done);
-  3. LMS;
+  3. ~~LMS~~ (done);
   4. employee relations, assets and offboarding;
   5. engagement and OHS.
 
@@ -27,7 +27,7 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 77 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 82 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)

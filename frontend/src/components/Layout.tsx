@@ -20,6 +20,7 @@ import PersonAdd from "@mui/icons-material/PersonAdd";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import Savings from "@mui/icons-material/Savings";
 import Schedule from "@mui/icons-material/Schedule";
+import School from "@mui/icons-material/School";
 import SupportAgent from "@mui/icons-material/SupportAgent";
 import TrendingUp from "@mui/icons-material/TrendingUp";
 import { AppBar, Avatar, Badge, Box, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemIcon,
@@ -51,6 +52,7 @@ const NAV: NavGroup[] = [
     { label: "Loans & advances", to: "/me/loans", employee: true, feature: "payroll" },
     { label: "My requests", to: "/me/requests" },
     { label: "My performance", to: "/performance/my", employee: true },
+    { label: "My learning", to: "/learning", employee: true },
     { label: "Feedback requests", to: "/performance/feedback" },
     { label: "Onboarding tasks", to: "/onboarding/my-tasks" },
     { label: "Interview panels", to: "/recruitment/my-interviews" },
@@ -66,6 +68,7 @@ const NAV: NavGroup[] = [
     { label: "Probation reviews", to: "/onboarding/probation", perm: ["leave.approve", "onboarding.view"] },
     { label: "Team appraisals", to: "/performance/team", perm: ["leave.approve", "performance.manage"] },
     { label: "Improvement plans", to: "/performance/plans", perm: ["leave.approve", "performance.manage"] },
+    { label: "Team learning", to: "/learning/team", perm: ["leave.approve", "learning.manage"] },
   ] },
   { label: "Recruitment & onboarding", icon: <PersonAdd />, items: [
     { label: "Vacancies & pipeline", to: "/recruitment/vacancies", perm: "recruitment.view" },
@@ -74,6 +77,10 @@ const NAV: NavGroup[] = [
     { label: "Recruitment analytics", to: "/recruitment/analytics", perm: "recruitment.view" },
     { label: "Onboarding", to: "/onboarding", perm: "onboarding.view", scope: "organization" },
     { label: "Onboarding checklists", to: "/onboarding/setup", perm: "onboarding.manage" },
+  ] },
+  { label: "Learning & development", icon: <School />, items: [
+    { label: "Training administration", to: "/learning/admin", perm: "learning.manage" },
+    { label: "Compliance & effectiveness", to: "/learning/compliance", perm: ["learning.manage", "learning.view"], scope: "department" },
   ] },
   { label: "Performance", icon: <TrendingUp />, items: [
     { label: "Review cycles & calibration", to: "/performance/cycles", perm: "performance.manage" },

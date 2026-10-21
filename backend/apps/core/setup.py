@@ -175,6 +175,14 @@ def seed_workflows():
         ("appraisal_objectives", "Objective agreement", 100, {}, [
             (1, "Supervisor agreement", "supervisor", None, 120, False)]),
         ("improvement_plan", "Performance improvement plan", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
+        ("training_request", "Training request", 100, {}, [
+            (1, "Supervisor approval", "supervisor", None, 48, True),
+            (2, "Training officer review", "role", Role.objects.get(code="training_officer"), 48, True)]),
+        ("training_request", "Costly or over-budget training", 50,
+         {"any": [{"field": "amount", "op": ">", "value": 2000}, {"field": "over_budget", "op": "eq", "value": True}]}, [
+            (1, "Supervisor approval", "supervisor", None, 48, True),
+            (2, "Training officer review", "role", Role.objects.get(code="training_officer"), 48, True),
+            (3, "HR Director approval", "role", hr_dir, 72, False)]),
         ("probation_outcome", "Probation confirmation", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
         ("probation_outcome", "Probation extension / termination", 50,
          {"field": "recommendation", "op": "in", "value": ["extend", "terminate"]}, [
@@ -443,6 +451,51 @@ def seed_performance():
         tpl.competencies.set(core + [c for c in by_name.values() if c.category == "clinical"])
 
 
+def seed_learning():
+    from apps.learning.models import Course, CourseModule, QuizQuestion
+
+    if Course.objects.exists():
+        return
+    fire = Course.objects.create(
+        code="HS-101", title="Fire safety and evacuation", category="safety", delivery="elearning",
+        description="Fire prevention, alarms, extinguisher types and evacuation procedure.", duration_hours=1,
+        is_mandatory=True, applies_to_all=True, refresher_months=12, pass_mark=70)
+    for i, (t, txt) in enumerate([
+            ("Preventing fires", "Keep exits clear, report damaged cables, store flammables safely."),
+            ("When the alarm sounds", "Stop work, close doors, leave by the nearest exit, go to the assembly point, "
+                                      "do not use lifts."),
+            ("Extinguishers", "Water (red) for paper/wood; CO2 (black) for electrical; foam (cream) for liquids.")]):
+        CourseModule.objects.create(course=fire, order=i, title=t, kind="text", content=txt, minutes=5)
+    for i, (q, opts, ok) in enumerate([
+            ("Which extinguisher is safe on an electrical fire?", ["Water", "CO2", "Foam"], [1]),
+            ("When the alarm sounds you should...", ["Use the lift", "Finish your task", "Leave by the nearest exit"],
+             [2]),
+            ("Fire exits may be used for storage.", ["True", "False"], [1])]):
+        QuizQuestion.objects.create(course=fire, order=i, text=q, options=opts, correct=ok)
+    dp = Course.objects.create(
+        code="CP-201", title="Data protection (Act 843) essentials", category="compliance", delivery="elearning",
+        description="Handling personal and patient data lawfully under the Data Protection Act, 2012 (Act 843).",
+        duration_hours=1, is_mandatory=True, applies_to_all=True, refresher_months=24, pass_mark=70)
+    CourseModule.objects.create(course=dp, order=0, title="Principles", kind="text", minutes=10,
+                                content="Collect only what you need, keep it accurate and secure, share it only "
+                                        "with authorised people, and keep it no longer than necessary.")
+    QuizQuestion.objects.create(course=dp, text="A colleague asks for a patient's phone number for a personal "
+                                                "matter. You should...",
+                                options=["Give it", "Refuse and report if pressed"], correct=[1])
+    Course.objects.create(code="CL-301", title="Infection prevention and control", category="clinical",
+                          delivery="classroom", duration_hours=3, cpd_credits=3, is_mandatory=True,
+                          refresher_months=12, description="Hand hygiene, PPE, sharps and waste segregation.")
+    Course.objects.create(code="CL-302", title="Basic Life Support (BLS)", category="clinical", delivery="classroom",
+                          duration_hours=6, cpd_credits=6, is_mandatory=True, refresher_months=24,
+                          description="Adult and paediatric CPR, AED use and choking management.")
+    Course.objects.create(code="LD-401", title="First-line supervisor programme", category="leadership",
+                          delivery="external", provider="GIMPA", duration_hours=24, cpd_credits=10,
+                          cost_per_participant=3500,
+                          description="Planning, delegation, feedback and managing performance.")
+    Course.objects.create(code="TS-501", title="Excel for reporting", category="technical", delivery="classroom",
+                          duration_hours=6, description="Tables, formulas, pivot tables and charts.")
+
+
 def seed_attendance():
     from apps.attendance.models import AttendancePolicy, Shift
 
@@ -484,6 +537,7 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         seed_expenses_and_benefits()
         seed_onboarding()
         seed_performance()
+        seed_learning()
         year = dt.date.today().year
         seed_public_holidays(year)
         seed_public_holidays(year + 1)

@@ -50,6 +50,8 @@ class Command(BaseCommand):
             self._seed_talent(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_performance(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_learning(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -585,3 +587,102 @@ class Command(BaseCommand):
                                          measure="Chart audit", due_date=today + dt.timedelta(days=30))
         self.stdout.write(f"Performance demo: {last.name} (closed) and {cur.name} "
                           f"({Appraisal.objects.filter(cycle=cur).count()} appraisals in year-end review).")
+
+
+    def _seed_learning(self, org, admin):
+        """Training sessions, mandatory compliance mix, budgets, CPD, development and mentoring (Phase 3). Idempotent."""
+        from apps.employees.models import Employee
+        from apps.hospital.models import CompetencyRequirement
+        from apps.learning import services as lms
+        from apps.learning.models import (CPDRecord, CPDRequirement, Course, DevelopmentGoal, Enrollment, Mentorship,
+                                          MentoringSession, Session, TrainingBudget)
+        from apps.organization.models import Department, JobTitle
+        from apps.performance.models import Appraisal
+
+        if Session.objects.exists() or not Employee.objects.exists() or not Course.objects.exists():
+            return
+        User = get_user_model()
+        today = dt.date.today()
+        now = timezone.now()
+        clinical = list(JobTitle.objects.filter(is_clinical=True))
+        nurse_titles = [j for j in clinical if "Nurs" in j.name]
+        ipc, bls = Course.objects.get(code="CL-301"), Course.objects.get(code="CL-302")
+        ipc.job_titles.set(clinical)
+        bls.job_titles.set(clinical)
+        req = CompetencyRequirement.objects.filter(name__icontains="life support").first()
+        if req:
+            bls.competency_requirement = req
+            bls.save(update_fields=["competency_requirement"])
+        excel = Course.objects.get(code="TS-501")
+        for code, amount in (("WARD_A", "15000"), ("HR", "8000"), ("FIN", "6000"), ("LAB", "5000")):
+            dep = Department.objects.filter(code=code).first()
+            if dep:
+                TrainingBudget.objects.get_or_create(department=dep, year=today.year, defaults={"amount": D(amount)})
+        req_cpd = CPDRequirement.objects.create(name="Nursing council licence renewal", credits_per_year=D("20"))
+        req_cpd.job_titles.set(nurse_titles)
+
+        lms.assign_mandatory()
+        # history: fire safety done by most staff (some long ago, so refreshers fall due); data protection by some
+        fire, dp = Course.objects.get(code="HS-101"), Course.objects.get(code="CP-201")
+        for i, e in enumerate(Enrollment.objects.filter(course=fire, status="enrolled").select_related("employee")):
+            if i % 5 == 4:
+                continue
+            ago = 340 if i % 4 == 0 else random.randint(20, 200)
+            e.modules_done = list(fire.modules.values_list("pk", flat=True))
+            e.save(update_fields=["modules_done"])
+            lms.complete(e, today - dt.timedelta(days=ago), score=random.choice([80, 90, 100]))
+        for i, e in enumerate(Enrollment.objects.filter(course=dp, status="enrolled")):
+            if i % 2 == 0:
+                lms.complete(e, today - dt.timedelta(days=random.randint(30, 300)), score=100)
+        # an infection-control session last week with attendance recorded
+        past = Session.objects.create(course=ipc, start=now - dt.timedelta(days=6, hours=3),
+                                      end=now - dt.timedelta(days=6), venue="Training room 2", trainer="IPC focal person",
+                                      capacity=15, actual_cost=D("1200"))
+        attendees = list(Enrollment.objects.filter(course=ipc, status="enrolled")[:8])
+        Enrollment.objects.filter(pk__in=[e.pk for e in attendees]).update(session=past)
+        rows = [{"enrollment": e.pk, "attended": j != 7, "score": None} for j, e in enumerate(attendees)]
+        trainer = User.objects.get(username="hrdirector")
+        lms.record_attendance(past, trainer, rows)
+        for e in Enrollment.objects.filter(session=past, status="completed")[:5]:
+            e.feedback_rating, e.feedback_comments = random.choice([4, 5, 5]), "Practical and relevant."
+            e.save(update_fields=["feedback_rating", "feedback_comments"])
+        # upcoming sessions
+        nxt = Session.objects.create(course=bls, start=now + dt.timedelta(days=8), end=now + dt.timedelta(days=8, hours=6),
+                                     venue="Skills lab", trainer="Resuscitation council instructor", capacity=12,
+                                     registration_deadline=today + dt.timedelta(days=6))
+        for e in Enrollment.objects.filter(course=bls, status="enrolled")[:6]:
+            e.session = nxt
+            e.save(update_fields=["session"])
+        Session.objects.create(course=excel, start=now + dt.timedelta(days=15), end=now + dt.timedelta(days=15, hours=6),
+                               venue="ICT lab", trainer="ICT unit", capacity=10)
+        Session.objects.create(course=ipc, start=now + dt.timedelta(days=20), end=now + dt.timedelta(days=20, hours=3),
+                               venue="Training room 2", trainer="IPC focal person", capacity=15)
+        # a pending paid request: the ward manager asks for the supervisor programme (approved by the Medical Director)
+        mgr = User.objects.get(username="manager")
+        lms.request_training(mgr.employee, Course.objects.get(code="LD-401"), mgr,
+                             reason="Newly responsible for 12 staff; need supervision and feedback skills.")
+        # CPD records for nurses
+        for emp in Employee.objects.filter(job_title__in=nurse_titles)[:8]:
+            CPDRecord.objects.create(employee=emp, title="Ghana Nurses conference", provider="GRNMA",
+                                     activity_date=today - dt.timedelta(days=random.randint(20, 200)),
+                                     credits=D(random.choice(["4", "6", "8"])), category="Conference",
+                                     status=random.choice(["verified", "verified", "pending"]))
+        # development goals from last year's low competency ratings
+        for ap in Appraisal.objects.filter(status="completed", competency_ratings__manager_rating__lte=2).distinct()[:6]:
+            for cr in ap.competency_ratings.filter(manager_rating__lte=2).select_related("competency")[:1]:
+                DevelopmentGoal.objects.get_or_create(employee=ap.employee, appraisal=ap, competency=cr.competency,
+                                                      defaults={"title": f"Develop: {cr.competency.name}",
+                                                                "actions": ap.development_needs,
+                                                                "target_date": today + dt.timedelta(days=120),
+                                                                "status": "in_progress"})
+        # mentoring: the senior HR officer mentors the new HR officer
+        hro = User.objects.get(username="hrofficer").employee
+        newer = Employee.objects.filter(job_title=hro.job_title).exclude(pk=hro.pk).first()
+        if newer:
+            m = Mentorship.objects.create(mentor=hro, mentee=newer, objectives="Learn employee relations casework "
+                                          "and payroll inputs.", start_date=today - dt.timedelta(days=60))
+            MentoringSession.objects.create(mentorship=m, date=today - dt.timedelta(days=14),
+                                            notes="Walked through a disciplinary case file.",
+                                            next_steps="Shadow the next hearing.")
+        self.stdout.write(f"Learning demo: {Enrollment.objects.count()} enrolments, compliance "
+                          f"{lms.compliance_matrix()['compliance_percent']}%.")

@@ -60,6 +60,8 @@ PERMISSIONS = [
     ("onboarding.manage", "Manage onboarding checklists, tasks and probation", False),
     ("performance.view", "View appraisals and improvement plans", True),
     ("performance.manage", "Run review cycles, templates, calibration and improvement plans", True),
+    ("learning.view", "View training records, CPD and development plans", False),
+    ("learning.manage", "Manage courses, sessions, attendance, budgets and CPD verification", False),
     ("hospital.view", "View clinical credentials and rosters", False),
     ("hospital.manage", "Manage clinical credentials and rosters", False),
 ]
@@ -96,7 +98,7 @@ DEFAULT_ROLES = {
          "notifications.manage", "hospital.view", "hospital.manage", "servicedesk.agent", "servicedesk.manage",
          "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
          "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage", "performance.view",
-         "performance.manage"],
+         "performance.manage", "learning.view"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
@@ -122,13 +124,14 @@ DEFAULT_ROLES = {
         "department",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
          "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
-         "onboarding.view", "performance.view"],
+         "onboarding.view", "performance.view", "learning.view"],
     ),
     "line_manager": (
         "Line Manager",
         "team",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
-         "attendance.approve", "expenses.view", "recruitment.requisition", "onboarding.view", "performance.view"],
+         "attendance.approve", "expenses.view", "recruitment.requisition", "onboarding.view", "performance.view",
+         "learning.view"],
     ),
     "finance_officer": (
         "Finance Officer",
@@ -140,14 +143,14 @@ DEFAULT_ROLES = {
         "Training Officer",
         "organization",
         ["employees.view", "organization.view", "documents.view", "reports.view", "hospital.view",
-         "performance.view"],
+         "performance.view", "learning.view", "learning.manage"],
     ),
     "employee": (
         "Employee",
         "own",
         ["employees.view", "employees.view_personal", "employees.view_salary", "employees.view_bank",
          "leave.view", "attendance.view", "documents.view", "organization.view", "expenses.view",
-         "performance.view"],
+         "performance.view", "learning.view"],
     ),
     "internal_auditor": (
         "Internal Auditor (read-only)",

@@ -96,6 +96,11 @@ const PerfCycleDetail = lazy(() => import("./pages/performance/CycleDetail"));
 const FeedbackRequests = lazy(() => import("./pages/performance/FeedbackRequests"));
 const Plans = lazy(() => import("./pages/performance/Plans"));
 const PerformanceSetup = lazy(() => import("./pages/performance/PerformanceSetup"));
+const MyLearning = lazy(() => import("./pages/learning/MyLearning"));
+const EnrollmentPage = lazy(() => import("./pages/learning/EnrollmentPage"));
+const TeamLearning = lazy(() => import("./pages/learning/TeamLearning"));
+const LearningAdmin = lazy(() => import("./pages/learning/LearningAdmin"));
+const LearningCompliance = lazy(() => import("./pages/learning/Compliance"));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
 
@@ -217,6 +222,11 @@ export default function App() {
           <Route path="onboarding/probation" element={<Probation />} />
           <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
           <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
+          <Route path="learning" element={<MyLearning />} />
+          <Route path="learning/enrollments/:id" element={<EnrollmentPage />} />
+          <Route path="learning/team" element={<TeamLearning />} />
+          <Route path="learning/admin" element={g(<LearningAdmin />, "learning.manage")} />
+          <Route path="learning/compliance" element={g(<LearningCompliance />, ["learning.manage", "learning.view"], { scope: "department" })} />
           <Route path="performance/my" element={<MyPerformance />} />
           <Route path="performance/team" element={<TeamAppraisals />} />
           <Route path="performance/appraisals/:id" element={<AppraisalDetail />} />
