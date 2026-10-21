@@ -66,6 +66,14 @@ app.conf.beat_schedule = {
         "task": "apps.offboarding.tasks.offboarding_housekeeping",
         "schedule": crontab(hour=2, minute=30),
     },
+    "safety-housekeeping": {
+        "task": "apps.safety.tasks.safety_housekeeping",
+        "schedule": crontab(hour=7, minute=20),
+    },
+    "close-due-surveys": {
+        "task": "apps.engagement.tasks.close_due_surveys",
+        "schedule": crontab(hour=0, minute=15),
+    },
     "scheduled-reports": {
         "task": "apps.reports.tasks.send_scheduled_reports",
         "schedule": crontab(hour=6, minute=0),

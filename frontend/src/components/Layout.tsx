@@ -10,6 +10,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Gavel from "@mui/icons-material/Gavel";
 import Groups from "@mui/icons-material/Groups";
+import HealthAndSafety from "@mui/icons-material/HealthAndSafety";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import Inbox from "@mui/icons-material/Inbox";
 import LocalHospital from "@mui/icons-material/LocalHospital";
@@ -56,6 +57,8 @@ const NAV: NavGroup[] = [
     { label: "My learning", to: "/learning", employee: true },
     { label: "My equipment", to: "/assets/my", employee: true },
     { label: "Raise a concern", to: "/relations/my", employee: true },
+    { label: "Engagement & wellbeing", to: "/engagement", employee: true },
+    { label: "Report a safety incident", to: "/safety/my" },
     { label: "Resignation & exit", to: "/offboarding/my", employee: true },
     { label: "Feedback requests", to: "/performance/feedback" },
     { label: "Onboarding tasks", to: "/onboarding/my-tasks" },
@@ -86,6 +89,11 @@ const NAV: NavGroup[] = [
     { label: "Employee relations cases", to: "/relations", perm: ["relations.manage", "relations.view_all"] },
     { label: "Exits & clearance", to: "/offboarding", perm: ["offboarding.view", "assets.manage", "payroll.prepare", "expenses.pay"] },
     { label: "Assets & equipment", to: "/assets", perm: "assets.view" },
+  ] },
+  { label: "Engagement & safety", icon: <HealthAndSafety />, items: [
+    { label: "Surveys & engagement", to: "/engagement/admin", perm: "engagement.manage" },
+    { label: "Health & safety", to: "/safety", perm: "ohs.view" },
+    { label: "Occupational health records", to: "/safety/occupational-health", perm: "ohs.medical" },
   ] },
   { label: "Learning & development", icon: <School />, items: [
     { label: "Training administration", to: "/learning/admin", perm: "learning.manage" },

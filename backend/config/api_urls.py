@@ -8,6 +8,7 @@ from apps.audit.views import AuditLogViewSet
 from apps.compensation import views as comp
 from apps.documents import views as docs
 from apps.employees import views as emp
+from apps.engagement import views as eng
 from apps.expenses import views as exp
 from apps.hospital import views as hosp
 from apps.integrations import views as integ
@@ -23,6 +24,7 @@ from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSe
 from apps.recruitment import views as rec
 from apps.relations import views as er
 from apps.reports import views as rep
+from apps.safety import views as ohs
 from apps.selfservice import views as me
 from apps.servicedesk import views as sd
 from apps.tenancy import views as ten
@@ -128,6 +130,17 @@ router.register("assets/categories", ast.CategoryViewSet, basename="asset-catego
 router.register("assets/items", ast.AssetViewSet, basename="assets")
 router.register("assets/assignments", ast.AssignmentViewSet, basename="asset-assignments")
 router.register("offboarding/separations", offb.SeparationViewSet, basename="separations")
+# engagement & safety
+router.register("engagement/surveys", eng.SurveyViewSet, basename="surveys")
+router.register("engagement/action-plans", eng.ActionPlanViewSet, basename="engagement-actions")
+router.register("engagement/recognition", eng.RecognitionViewSet, basename="recognition")
+router.register("engagement/suggestions", eng.SuggestionViewSet, basename="suggestions")
+router.register("engagement/events", eng.EventViewSet, basename="events")
+router.register("safety/incidents", ohs.IncidentViewSet, basename="incidents")
+router.register("safety/actions", ohs.ActionViewSet, basename="safety-actions")
+router.register("safety/risks", ohs.RiskViewSet, basename="risk-assessments")
+router.register("safety/inspections", ohs.InspectionViewSet, basename="inspections")
+router.register("safety/oh-records", ohs.OHRecordViewSet, basename="oh-records")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -211,6 +224,10 @@ urlpatterns = [
     path("relations/warnings/<int:employee_id>/", er.WarningsView.as_view()),
     path("relations/report/", er.ReportView.as_view()),
     path("assets/dashboard/", ast.DashboardView.as_view()),
+    path("engagement/overview/", eng.OverviewView.as_view()),
+    path("safety/fitness/", ohs.FitnessView.as_view()),
+    path("safety/fitness/<int:employee_id>/", ohs.FitnessView.as_view()),
+    path("safety/stats/", ohs.StatsView.as_view()),
     path("offboarding/clearance/<int:pk>/clear/", offb.ClearView.as_view()),
     path("offboarding/analytics/", offb.AnalyticsView.as_view()),
     path("learning/needs/", lrn.NeedsView.as_view()),

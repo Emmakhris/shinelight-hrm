@@ -43,6 +43,8 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `relations` | Confidential ER cases (access by assignment, never to parties), notes/evidence, meetings, sanctions with the `disciplinary_decision` workflow, appeals, warnings, trend report |
 | `assets` | Asset categories and register, assignments (tagged or by quantity), acknowledgment, loss/damage, return and payroll recovery (`ASSET_RECOVERY` element) |
 | `offboarding` | Separations with the `separation` workflow, notice rules, clearance items with automatic checks, access extensions (consulted by `employees.services.revoke_access`), exit interviews, certificate of service, turnover analytics |
+| `engagement` | Surveys (invites kept separate from anonymous responses), results with minimum group size, action plans, recognition, suggestions, events |
+| `safety` | Incidents, corrective actions, risk assessments, inspections, statistics; `OHRecord` clinical zone (`ohs.medical` only) and `fitness_status()` used by `hospital.services.credential_issues` |
 | `onboarding` | Checklist templates, onboarding records and tasks (auto-started by a `post_save` signal on new employees), probation reviews and outcome workflow |
 
 ## Key design decisions
@@ -73,3 +75,5 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | Learning: assign due mandatory training, due-date and effectiveness reminders | 06:30 |
 | Employee relations: escalate cases past their deadline | 07:05 |
 | Offboarding: revoke access when extensions end, upcoming retirement reminders | 02:30 |
+| Safety: overdue corrective actions, risk assessments due for review | 07:20 |
+| Engagement: close surveys past their closing date | 00:15 |

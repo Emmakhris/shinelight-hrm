@@ -37,7 +37,7 @@ Built for a single organization today; every record is tenant-scoped, so the sam
 
 The workflow engine also skips a step when its only approver already approved an earlier step of the same request (e.g. a supervisor who is also head of department).
 
-### Phase 3 (in progress): Talent & lifecycle
+### Phase 3: Talent & lifecycle
 
 | Area | Highlights |
 |---|---|
@@ -53,8 +53,8 @@ The workflow engine also skips a step when its only approver already approved an
 | **Employee relations** | Confidential grievance, harassment, whistleblowing (optionally anonymous), misconduct and disciplinary cases; access by assignment only (case officer, investigators, HR Director), never by line management, and never to a party; least-loaded case officer assignment; investigation plans, notes and evidence; meetings with neutral invitations and minutes; a minuted hearing is required before any formal sanction; suspension, demotion and dismissal need HR Director approval; outcome letters filed as restricted documents the addressee can still read; responses and appeals decided by someone independent; warnings lapse automatically; deadlines and escalation; name-free trend reports |
 | **Assets** | Register of tagged assets (laptops, phones, access cards) and issue of untagged uniforms/PPE; employee acknowledgment; transfers; loss/damage reporting; return with condition and recovery through payroll; outstanding-items dashboard including leavers |
 | **Offboarding** | Resignation through self-service, other exits recorded by HR; notice period per the Labour Act with shortfall shown; approval (involuntary exits need the HR Director); clearance across supervisor, IT, admin, finance, HR and payroll with automatic checks (assets returned, loans and advances, exit interview, final payroll run); access revoked on the last day unless an approved extension applies; dismissals from ER cases start offboarding automatically; certificate of service; exit interviews; turnover analytics and upcoming retirements |
-
-Still to come in Phase 3: engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Engagement** | Engagement, pulse, stay and wellbeing surveys; anonymous responses stored with no link to the person; results only for groups of 5+ (smaller groups combined), shuffled unattributed comments; engagement index, eNPS, themes and workload/burnout risk by department; managers see their own area only; action plans; recognition wall; suggestion box (anonymous option, votes, HR responses); wellness, welfare and EAP events with registration |
+| **Health & safety** | Incident and near-miss reporting by anyone (urgent alerts for needlestick/splash exposures and serious incidents); investigation, root cause, lost time, reportable-incident tracking; corrective actions with overdue reminders; 5x5 risk assessments with review dates; inspections with checklists; LTIFR, days since last lost-time injury and trends. **Occupational health records are a separate restricted zone** (OH professionals only, not even the HR Director): HR and rostering see only the fitness outcome and work restrictions, and staff marked unfit cannot be rostered for clinical duties | See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -75,7 +75,7 @@ npm install
 npm run dev                                        # http://localhost:5173 (proxies /api to :8000)
 ```
 
-Development uses SQLite, console email/SMS and synchronous Celery tasks by default. Demo usernames (admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor, recruiter, itsupport, newhire) and the shared demo password are listed at the top of `backend/apps/core/management/commands/seed_demo.py`. MFA is disabled for the demo organization only. The demo career site is at http://localhost:5173/careers/shinelight.
+Development uses SQLite, console email/SMS and synchronous Celery tasks by default. Demo usernames (admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor, recruiter, itsupport, newhire, safety, ohdoctor) and the shared demo password are listed at the top of `backend/apps/core/management/commands/seed_demo.py`. MFA is disabled for the demo organization only. The demo career site is at http://localhost:5173/careers/shinelight.
 
 ## Production (Docker on a VPS)
 
@@ -90,7 +90,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 95 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding
+cd backend && .venv/Scripts/python -m pytest          # 101 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

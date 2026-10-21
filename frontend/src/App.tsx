@@ -109,6 +109,12 @@ const MyAssets = lazy(() => import("./pages/assets/MyAssets"));
 const Exits = lazy(() => import("./pages/offboarding/Exits"));
 const ExitDetail = lazy(() => import("./pages/offboarding/ExitDetail"));
 const MyExit = lazy(() => import("./pages/offboarding/MyExit"));
+const EngagementHub = lazy(() => import("./pages/engagement/Engagement"));
+const EngagementAdmin = lazy(() => import("./pages/engagement/EngagementAdmin"));
+const SafetyPage = lazy(() => import("./pages/safety/Safety"));
+const IncidentDetail = lazy(() => import("./pages/safety/IncidentDetail"));
+const OccupationalHealth = lazy(() => import("./pages/safety/OccupationalHealth"));
+const MySafety = lazy(() => import("./pages/safety/MySafety"));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
 
@@ -230,6 +236,12 @@ export default function App() {
           <Route path="onboarding/probation" element={<Probation />} />
           <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
           <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
+          <Route path="engagement" element={<EngagementHub />} />
+          <Route path="engagement/admin" element={g(<EngagementAdmin />, "engagement.manage")} />
+          <Route path="safety" element={g(<SafetyPage />, "ohs.view")} />
+          <Route path="safety/my" element={<MySafety />} />
+          <Route path="safety/incidents/:id" element={<IncidentDetail />} />
+          <Route path="safety/occupational-health" element={g(<OccupationalHealth />, "ohs.medical")} />
           <Route path="relations/my" element={<MyCases />} />
           <Route path="relations" element={g(<ERCases />, ["relations.manage", "relations.view_all"])} />
           <Route path="relations/cases/:id" element={g(<CaseDetail />, ["relations.manage", "relations.view_all"])} />

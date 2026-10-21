@@ -17,7 +17,7 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
   - departmental budgets.
 - **E-signature integration** for contracts and letters.
 
-## Phase 3: Talent & lifecycle (in progress)
+## Phase 3: Talent & lifecycle (delivered)
 
 - **Recruitment / ATS (delivered):** requisitions with approval, career portal, internal vacancies, screening, interviews and scorecards, references, offers, talent pool, analytics.
 - **Onboarding (delivered):**
@@ -28,6 +28,7 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
 - **Performance (delivered):** cycles, role-specific forms, cascading goals and objectives, competencies, self/manager/360 reviews, calibration, acknowledgment, improvement plans, merit link to salary reviews.
 - **Learning (delivered):** catalogue, requests and budgets, sessions and attendance, e-learning and quizzes, mandatory training compliance, CPD, training needs analysis, development plans, mentoring, effectiveness.
 - **Employee relations, assets and offboarding (delivered):** confidential cases with hearings, sanctions, approvals and appeals; asset issue, return and recovery; exits with clearance, exit interviews and turnover analytics.
+- **Engagement and OHS (delivered):** confidential surveys with minimum group sizes, recognition, suggestions, events; incidents, investigations, actions, risk assessments, inspections and a restricted occupational-health zone.
 - Deferred within recruitment: job-board posting integrations, CV parsing and AI-assisted matching (features.txt marks these as advanced).
 - **Performance:**
   - cycles, role-specific templates, cascading objectives and KPIs, competencies;

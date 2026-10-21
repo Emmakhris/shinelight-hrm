@@ -12,7 +12,7 @@ import requests
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 PASSWORD = "Demo@ShineLight2026"  # demo-only, see apps/core/management/commands/seed_demo.py
 USERS = ["admin", "hrdirector", "hrofficer", "payroll", "approver", "manager", "employee", "auditor",
-         "recruiter", "itsupport", "newhire"]
+         "recruiter", "itsupport", "newhire", "safety", "ohdoctor"]
 ENDPOINTS = [
     "auth/me/", "me/summary/", "me/profile/", "me/documents/", "me/letters/", "me/team/", "me/change-requests/",
     "employees/", "employees/data-quality/", "employees/change-requests/", "employees/categories/", "directory/",
@@ -56,6 +56,10 @@ ENDPOINTS = [
     "relations/cases/", "relations/my/", "relations/report/", "assets/categories/", "assets/items/",
     "assets/assignments/", "assets/assignments/?mine=1", "assets/dashboard/", "offboarding/separations/",
     "offboarding/separations/?mine=1", "offboarding/separations/?clearance_for_me=1", "offboarding/analytics/",
+    "engagement/surveys/", "engagement/surveys/mine/", "engagement/surveys/trends/", "engagement/surveys/1/results/",
+    "engagement/action-plans/", "engagement/recognition/", "engagement/suggestions/", "engagement/events/",
+    "engagement/overview/", "safety/incidents/", "safety/incidents/?mine=1", "safety/actions/", "safety/risks/",
+    "safety/inspections/", "safety/oh-records/", "safety/fitness/", "safety/stats/",
 ]
 
 failures = 0

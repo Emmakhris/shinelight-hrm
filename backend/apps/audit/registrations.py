@@ -78,6 +78,11 @@ AUDITED = {
     "assets.Assignment": {},
     "offboarding.Separation": {"sensitive": ["details"]},
     "offboarding.ClearanceItem": {},
+    "engagement.Survey": {},
+    "safety.Incident": {},
+    "safety.CorrectiveAction": {},
+    "safety.RiskAssessment": {},
+    "safety.OHRecord": {"sensitive": ["clinical_notes"]},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

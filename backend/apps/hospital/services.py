@@ -7,8 +7,14 @@ from .models import CompetencyRecord, CompetencyRequirement, ProfessionalLicense
 
 def credential_issues(employee, on_date=None) -> list[str]:
     """Return reasons an employee may not perform regulated clinical duties on a date."""
+    from apps.safety.services import fitness_status
+
     on_date = on_date or dt.date.today()
     issues = []
+    fit = fitness_status(employee, on_date)
+    if fit and fit["status"] == "unfit":
+        issues.append("Not fit for duty (occupational health)"
+                      + (f" until {fit['until']:%d/%m/%Y}." if fit.get("until") else "."))
     jt = employee.job_title
     if jt is None or not jt.is_clinical:
         return issues

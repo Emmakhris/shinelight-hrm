@@ -68,6 +68,11 @@ PERMISSIONS = [
     ("assets.manage", "Issue, receive and manage organization assets", False),
     ("offboarding.view", "View exits and clearance", False),
     ("offboarding.manage", "Record exits, run clearance and exit interviews", False),
+    ("engagement.view", "View survey results (aggregated, minimum group size)", False),
+    ("engagement.manage", "Run surveys, action plans, suggestions and events", False),
+    ("ohs.view", "View the incident register, risks and inspections", False),
+    ("ohs.manage", "Investigate incidents, manage risks, inspections and safety actions", False),
+    ("ohs.medical", "Occupational health clinical records (OH professionals only)", True),
     ("hospital.view", "View clinical credentials and rosters", False),
     ("hospital.manage", "Manage clinical credentials and rosters", False),
 ]
@@ -93,7 +98,7 @@ DEFAULT_ROLES = {
     "hr_director": (
         "HR Director / HR Manager",
         "organization",
-        _all_except("payroll.prepare", "payroll.release", "payroll.manage", "integrations.", "admin.roles"),
+        _all_except("payroll.prepare", "payroll.release", "payroll.manage", "integrations.", "admin.roles", "ohs.medical"),
     ),
     "hr_officer": (
         "HR Officer",
@@ -105,7 +110,7 @@ DEFAULT_ROLES = {
          "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
          "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage", "performance.view",
          "performance.manage", "learning.view", "relations.manage", "assets.view", "offboarding.view",
-         "offboarding.manage"],
+         "offboarding.manage", "engagement.view", "engagement.manage", "ohs.view"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
@@ -131,7 +136,7 @@ DEFAULT_ROLES = {
         "department",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
          "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
-         "onboarding.view", "performance.view", "learning.view", "offboarding.view"],
+         "onboarding.view", "performance.view", "learning.view", "offboarding.view", "engagement.view", "ohs.view"],
     ),
     "line_manager": (
         "Line Manager",
@@ -178,6 +183,11 @@ DEFAULT_ROLES = {
     "oh_professional": (
         "Occupational Health Professional",
         "organization",
-        ["employees.view", "documents.view", "documents.view_confidential"],
+        ["employees.view", "documents.view", "documents.view_confidential", "ohs.view", "ohs.medical"],
+    ),
+    "safety_officer": (
+        "Health & Safety Officer",
+        "organization",
+        ["organization.view", "ohs.view", "ohs.manage", "learning.view"],
     ),
 }

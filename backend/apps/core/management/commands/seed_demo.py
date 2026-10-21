@@ -2,7 +2,8 @@
 
 Demo logins (all share DEMO_PASSWORD below; MFA disabled for the demo org):
   admin, hrdirector, hrofficer, payroll, approver, manager, employee, auditor,
-  recruiter (recruitment officer), itsupport (IT provisioning), newhire (employee in onboarding)
+  recruiter (recruitment officer), itsupport (IT provisioning), newhire (employee in onboarding),
+  safety (health & safety officer), ohdoctor (occupational health - the only role that sees clinical notes)
 Public career site: /careers/shinelight
 """
 
@@ -54,6 +55,8 @@ class Command(BaseCommand):
             self._seed_learning(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_exits(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_wellbeing(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -806,3 +809,152 @@ class Command(BaseCommand):
                 "last_working_day": today + dt.timedelta(days=35)})
         self.stdout.write(f"Exits demo: {Case.objects.count()} ER cases, {Asset.objects.count()} assets, "
                           f"{Separation.objects.count()} exits.")
+
+
+    def _seed_wellbeing(self, org, admin):
+        """Engagement surveys, recognition, suggestions, events and health & safety (Phase 3). Idempotent."""
+        from apps.employees.models import Employee
+        from apps.engagement import services as eng
+        from apps.engagement.models import ActionPlan, Event, Survey
+        from apps.organization.models import Department
+        from apps.rbac.models import Role, RoleAssignment
+        from apps.safety import services as ohs
+        from apps.safety.models import Inspection, RiskAssessment
+
+        if Survey.objects.exists() or not Employee.objects.exists():
+            return
+        User = get_user_model()
+        today = dt.date.today()
+        now = timezone.now()
+        hrd, hro = User.objects.get(username="hrdirector"), User.objects.get(username="hrofficer")
+
+        def user(username, first, last, roles):
+            u = User.objects.filter(username=username).first() or User.objects.create_user(
+                username, f"{username}@shinelight.local", DEMO_PASSWORD, organization=org, first_name=first,
+                last_name=last)
+            for rc in roles:
+                RoleAssignment.objects.get_or_create(user=u, role=Role.objects.get(code=rc))
+            return u
+
+        safety = user("safety", "Kwaku", "Darko", ["safety_officer"])
+        ohdoc = user("ohdoctor", "Dr Adwoa", "Mensah", ["oh_professional"])
+        staff = list(Employee.objects.filter(status__in=["active", "probation"]).select_related("user"))
+
+        # ---- last quarter's pulse survey (closed, enough responses for results)
+        questions = [
+            {"key": "proud", "text": "I am proud to work for ShineLight", "type": "rating", "dimension": "engagement"},
+            {"key": "recommend", "text": "I would recommend ShineLight as a great place to work", "type": "rating",
+             "dimension": "engagement"},
+            {"key": "manager", "text": "My supervisor treats me with respect", "type": "rating", "dimension": "management"},
+            {"key": "workload", "text": "My workload is manageable", "type": "rating", "dimension": "workload"},
+            {"key": "exhausted", "text": "I rarely feel exhausted at the end of my shift", "type": "rating",
+             "dimension": "burnout"},
+            {"key": "enps", "text": "How likely are you to recommend us as an employer (0-10)?", "type": "enps"},
+            {"key": "improve", "text": "What one thing would most improve your work life?", "type": "text",
+             "required": False}]
+        past = Survey.objects.create(title=f"Q3 {today.year} staff pulse", kind="pulse", questions=questions,
+                                     opens_on=today - dt.timedelta(days=60))
+        eng.launch(past, hrd)
+        comments = ["More staff on night shifts", "Fix the staff room air conditioning", "Clearer promotion criteria",
+                    "Transport for late shifts", "", "Recognise good work more often", ""]
+        for i, emp in enumerate(staff):
+            if not emp.user_id or i % 5 == 4:
+                continue
+            ward = emp.department and emp.department.code == "WARD_A"
+            eng.respond(past, emp.user, {
+                "proud": random.choice([4, 4, 5, 3]), "recommend": random.choice([4, 3, 5, 4]),
+                "manager": random.choice([4, 5, 3]), "workload": random.choice([2, 2, 3] if ward else [3, 4, 4]),
+                "exhausted": random.choice([1, 2, 2, 3] if ward else [3, 4]), "enps": random.choice([9, 8, 7, 10, 6]),
+                "improve": comments[i % len(comments)]})
+        past.closes_on = today - dt.timedelta(days=45)
+        past.save(update_fields=["closes_on"])
+        eng.close(past)
+        ward = Department.objects.filter(code="WARD_A").first()
+        ns = User.objects.get(username="manager").employee
+        ActionPlan.objects.create(survey=past, department=ward, issue="Workload and fatigue on Ward A night shifts",
+                                  action="Recruit one additional nurse; cap consecutive night shifts at 4.",
+                                  owner=ns, due_date=today + dt.timedelta(days=45), status="in_progress",
+                                  progress_note="Requisition raised and approved; vacancy published.")
+        # ---- open wellbeing check including the demo employee
+        live = Survey.objects.create(title="Wellbeing check-in", kind="wellbeing", questions=questions[2:],
+                                     closes_on=today + dt.timedelta(days=10),
+                                     intro="Five quick questions. Your answers are anonymous.")
+        eng.launch(live, hrd)
+        # ---- recognition, suggestions, events
+        pairs = [(0, 1, "patient_care", "Stayed after her shift to comfort a frightened patient's family."),
+                 (2, 3, "teamwork", "Covered the lab bench during the outage without being asked."),
+                 (1, 4, "extra_mile", "Re-organised the ward store so we find supplies in seconds.")]
+        for g, r, v, msg in pairs:
+            if len(staff) > max(g, r) and staff[g].user_id:
+                eng.recognise(staff[g].user, staff[r], v, msg)
+        demo = User.objects.get(username="employee")
+        s1 = eng.suggest(demo, {"title": "Shuttle bus for night-shift staff", "category": "welfare",
+                                "text": "A bus at 10pm and 7am from Circle and Madina would help staff get home safely."})
+        s1.status, s1.response = "under_review", "Costing requested from two transport providers."
+        s1.save()
+        eng.suggest(hro, {"title": "Digital patient handover sheet", "category": "patient",
+                          "text": "Replace paper handover with a tablet form."}, anonymous=True)
+        Event.objects.create(title="Free health screening (BP, sugar, BMI)", kind="wellness",
+                             starts_at=now + dt.timedelta(days=6), location="OPD conference room", capacity=60,
+                             description="Run by the occupational health team. Results are confidential.")
+        Event.objects.create(title="End-of-year staff durbar", kind="celebration", starts_at=now + dt.timedelta(days=50),
+                             location="Hospital grounds", description="Long-service awards and music.")
+        Event.objects.create(title="Confidential counselling sessions (EAP)", kind="eap",
+                             starts_at=now + dt.timedelta(days=3), location="Wellness room, Admin block",
+                             description="Book a private 30-minute slot with the counsellor.")
+
+        # ---- health & safety
+        nurses = [e for e in staff if e.job_title and e.job_title.name == "Staff Nurse"]
+        reporter = demo
+        exp = ohs.report(reporter, {"kind": "exposure", "severity": "minor",
+                                    "occurred_at": now - dt.timedelta(days=12, hours=3), "location": "Ward A, bay 3",
+                                    "department": ward, "description": "Needlestick injury while disposing of a "
+                                    "used cannula; sharps bin overfilled.", "immediate_action": "Wound washed; "
+                                    "reported to in-charge; sent to OPD for assessment."},
+                          [reporter.employee] if reporter.employee else [])
+        ohs.investigate(exp, safety, root_cause="Sharps bin above fill line; no bin at bedside.")
+        ohs.add_action(safety, "Replace sharps bins at 3/4 full; add bedside bins on Ward A", hro,
+                           today + dt.timedelta(days=7), incident=exp)
+        fall = ohs.report(hro, {"kind": "injury", "severity": "serious", "occurred_at": now - dt.timedelta(days=30),
+                                "location": "Main corridor", "description": "Porter slipped on a wet floor while "
+                                "pushing a trolley; back injury.", "immediate_action": "First aid; X-ray."},
+                          [e for e in staff if e.job_title and e.job_title.name == "Porter"][:1])
+        ohs.investigate(fall, safety, root_cause="Floor mopped without wet-floor sign during busy period.",
+                        lost_time_days=4, reported_to_authority_on=today - dt.timedelta(days=27))
+        done = ohs.add_action(safety, "Mop corridors only with signs out; procure 10 extra signs", safety,
+                              today - dt.timedelta(days=10), incident=fall)
+        ohs.complete_action(done, safety, "Signs procured and cleaners briefed.")
+        ohs.close_incident(fall, safety)
+        for days, loc, desc in ((5, "Pharmacy store", "Box of IV fluids fell from top shelf; nobody hurt."),
+                                (18, "Lab", "Centrifuge lid opened before stopping; caught in time.")):
+            ohs.report(hro, {"kind": "near_miss", "occurred_at": now - dt.timedelta(days=days), "location": loc,
+                             "description": desc})
+        ohs.add_action(safety, "Fit shelf edge guards in pharmacy store", hro, today - dt.timedelta(days=3))
+        for title, dep, hazard, l, s_, rl, rs, controls in [
+                ("Sharps injuries", "WARD_A", "Needlestick from used sharps", 4, 4, 2, 4,
+                 "Sharps bins at point of use; no recapping; Hep B vaccination; PEP protocol"),
+                ("Manual handling of patients", "WARD_A", "Back injury when moving patients", 4, 3, 3, 3,
+                 "Slide sheets; two-person lifts; annual training"),
+                ("Biological samples", "LAB", "Exposure to infectious material", 3, 4, 2, 3,
+                 "Biosafety cabinet; PPE; spill kits"),
+                ("Violence from visitors", None, "Verbal and physical aggression at OPD", 3, 3, 3, 3,
+                 "Security at OPD; de-escalation training (planned)")]:
+            RiskAssessment.objects.create(title=title, department=Department.objects.filter(code=dep).first() if dep else None,
+                                          hazard=hazard, likelihood=l, severity=s_, residual_likelihood=rl,
+                                          residual_severity=rs, controls=controls, assessed_by=safety,
+                                          review_date=today + dt.timedelta(days=random.choice([-5, 60, 120])))
+        Inspection.objects.create(title="Monthly ward safety walk", department=ward, date=today - dt.timedelta(days=8),
+                                  inspector=safety, findings="Two sharps bins overfilled; one extinguisher out of date.",
+                                  checklist=[{"item": "Fire exits clear and signed", "ok": True},
+                                             {"item": "Extinguishers in date", "ok": False},
+                                             {"item": "Sharps bins below fill line", "ok": False},
+                                             {"item": "Floors dry / signs used", "ok": True},
+                                             {"item": "First-aid box stocked", "ok": True}])
+        if nurses:
+            ohs.add_oh_record(ohdoc, nurses[0], {
+                "kind": "return_to_work", "date": today - dt.timedelta(days=2),
+                "clinical_notes": "Recovering from wrist sprain; full grip expected in 2 weeks.",
+                "fitness": "fit_restricted", "restrictions": "No lifting or turning patients",
+                "valid_until": today + dt.timedelta(days=14), "review_date": today + dt.timedelta(days=14)})
+        self.stdout.write(f"Wellbeing demo: surveys, recognition, events; safety incidents "
+                          f"{ohs.stats()['incidents']} + near misses {ohs.stats()['near_misses']}.")
