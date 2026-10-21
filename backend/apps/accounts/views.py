@@ -81,6 +81,7 @@ def me_payload(user):
         "is_superuser": user.is_superuser,
         "is_platform_admin": bool(getattr(user, "is_platform_admin", False) and user.organization_id is None),
         "edition": settings.DEPLOYMENT_MODE,
+        "version": settings.APP_VERSION,
         "permissions": all_permission_codes(user),
         "scopes": {code: sorted({g.scope for g in gs}) for code, gs in grants.items()},
         "roles": list(user.role_assignments.values_list("role__code", flat=True)),
@@ -332,7 +333,11 @@ class PasswordResetRequestView(APIView):
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+            from apps.tenancy.services import is_cloud, login_url
+
+            base = login_url(user.organization).rsplit("/login", 1)[0] if is_cloud() and user.organization_id \
+                else settings.FRONTEND_URL.rstrip("/")
+            link = f"{base}/reset-password?uid={uid}&token={token}"
             send_mail("ShineLight HRM password reset",
                       f"Use this link to reset your password (valid for a limited time):\n{link}\n\n"
                       "If you did not request this, ignore this email.",

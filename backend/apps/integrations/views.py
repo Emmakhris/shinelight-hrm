@@ -43,6 +43,14 @@ class WebhookSerializer(TenantSerializer):
         model = Webhook
         extra_kwargs = {"secret": {"write_only": True, "required": False}}
 
+    def validate_url(self, url):
+        from apps.core.netsafe import UnsafeURL, check_url
+
+        try:
+            return check_url(url)
+        except UnsafeURL as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+
     def validate_events(self, events):
         valid = {c for c, _ in EVENTS}
         bad = [e for e in events if e not in valid]

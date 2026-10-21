@@ -22,6 +22,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.core.exceptions import BusinessRuleError
+from apps.core.netsafe import request_kwargs
 
 from .models import ExternalIdentity, IdentityProvider
 
@@ -29,6 +30,15 @@ STATE_SALT = "shinelight.sso"
 STATE_MAX_AGE = 600
 STATE_COOKIE = "sl_sso"
 HTTP_TIMEOUT = 10
+
+
+def _safe(url):
+    from apps.core.netsafe import UnsafeURL, check_url
+
+    try:
+        check_url(url, require_https=True)
+    except UnsafeURL as exc:
+        raise SsoError("provider_unreachable", str(exc)) from exc
 
 
 class SsoError(Exception):
@@ -94,7 +104,8 @@ def discovery(provider):
     if doc is None:
         url = provider.issuer.rstrip("/") + "/.well-known/openid-configuration"
         try:
-            r = requests.get(url, timeout=HTTP_TIMEOUT)
+            _safe(url)
+            r = requests.get(url, timeout=HTTP_TIMEOUT, **request_kwargs())
             r.raise_for_status()
             doc = r.json()
         except (requests.RequestException, ValueError) as exc:
@@ -111,7 +122,8 @@ def jwks(provider, uri):
     data = cache.get(key)
     if data is None:
         try:
-            r = requests.get(uri, timeout=HTTP_TIMEOUT)
+            _safe(uri)
+            r = requests.get(uri, timeout=HTTP_TIMEOUT, **request_kwargs())
             r.raise_for_status()
             data = r.json()
         except (requests.RequestException, ValueError) as exc:
@@ -136,7 +148,8 @@ def start(provider, next_path="/", request=None):
     doc = discovery(provider)
     verifier = _b64(secrets.token_bytes(32))
     state, nonce = secrets.token_urlsafe(24), secrets.token_urlsafe(24)
-    if not next_path.startswith("/") or next_path.startswith("//"):
+    if not next_path.startswith("/") or next_path.startswith("//") or "\\" in next_path \
+            or urllib.parse.urlsplit(next_path).netloc:
         next_path = "/"
     params = {
         "response_type": "code", "client_id": provider.client_id, "redirect_uri": redirect_uri(request),
@@ -162,7 +175,8 @@ def read_state(cookie, state):
 def exchange_code(provider, code, verifier, request=None):
     doc = discovery(provider)
     try:
-        r = requests.post(doc["token_endpoint"], timeout=HTTP_TIMEOUT, data={
+        _safe(doc["token_endpoint"])
+        r = requests.post(doc["token_endpoint"], timeout=HTTP_TIMEOUT, **request_kwargs(), data={
             "grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri(request),
             "client_id": provider.client_id, "client_secret": provider.client_secret or "",
             "code_verifier": verifier})

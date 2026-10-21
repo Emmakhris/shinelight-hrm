@@ -18,7 +18,8 @@ jobs:
         ports: ["5432:5432"]
         options: --health-cmd pg_isready --health-interval 5s --health-retries 10
     env:
-      DATABASE_URL: postgres://shinelight:shinelight@localhost:5432/shinelight
+      # a non-superuser role, so the PostgreSQL row-level security test actually runs
+      DATABASE_URL: postgres://app:app@localhost:5432/shinelight
       SECRET_KEY: ci-only-secret-key-not-for-production-use-0123456789
       DEBUG: "True"
       CELERY_TASK_ALWAYS_EAGER: "True"
@@ -33,11 +34,17 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt
+      - name: Create non-superuser database role
+        env:
+          PGPASSWORD: shinelight
+        run: |
+          psql -h localhost -U shinelight -d shinelight -c "CREATE ROLE app LOGIN PASSWORD 'app' CREATEDB NOSUPERUSER NOBYPASSRLS;"
+          psql -h localhost -U shinelight -d shinelight -c "ALTER DATABASE shinelight OWNER TO app;"
       - run: ruff check apps config --select F,E9
       - run: python manage.py makemigrations --check --dry-run
       - run: python manage.py check
       - run: pytest -p no:cacheprovider --create-db
-      - run: pip install pip-audit && pip-audit -r requirements.txt || true
+      - run: pip install pip-audit && pip-audit -r requirements.txt
 
   frontend:
     runs-on: ubuntu-latest
@@ -55,3 +62,4 @@ jobs:
       - run: npx tsc -p tsconfig.json --noEmit
       - run: npm test
       - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high

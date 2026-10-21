@@ -11,7 +11,7 @@ def health(request):
 
     with connection.cursor() as c:
         c.execute("SELECT 1")
-    return JsonResponse({"status": "ok", "edition": settings.DEPLOYMENT_MODE})
+    return JsonResponse({"status": "ok", "edition": settings.DEPLOYMENT_MODE, "version": settings.APP_VERSION})
 
 
 urlpatterns = [

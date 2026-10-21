@@ -1,7 +1,6 @@
 import datetime as dt
 
 from django.db.models import Q
-from django.http import FileResponse
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -103,7 +102,8 @@ class DocumentViewSet(TenantModelViewSet):
         q = employee_scope_q(user, "documents.view", "employee__")
         if q is None:
             return qs.none()
-        qs = qs.filter(q | Q(employee__isnull=True))
+        if q.children:      # an empty Q() means organization-wide; `Q() | x` would wrongly collapse to just x
+            qs = qs.filter(q | Q(employee__isnull=True))
         if not has_perm(user, "documents.view_confidential"):
             qs = qs.exclude(confidentiality="restricted")
         own = getattr(user, "employee", None)
@@ -169,9 +169,7 @@ class DocumentViewSet(TenantModelViewSet):
         if version is None:
             raise BusinessRuleError("This document has no file.")
         audit.log("download", doc, {"version": version.version})
-        inline = request.query_params.get("inline") == "1"
-        return FileResponse(version.file.open("rb"), as_attachment=not inline, filename=version.file_name,
-                            content_type=version.content_type or "application/octet-stream")
+        return services.file_response(version.file, version.file_name, inline=request.query_params.get("inline") == "1")
 
     @action(detail=True, methods=["post"])
     def acknowledge(self, request, pk=None):
@@ -378,8 +376,7 @@ class SignatureRequestViewSet(TenantModelViewSet):
         s = Signer.objects.select_related("request__document").get(pk=signer_id, user=request.user)
         version = s.request.document.versions.get(version=s.request.signed_version or s.request.source_version)
         audit.log("download", s.request.document, {"signature_preview": s.request_id})
-        return FileResponse(version.file.open("rb"), filename=version.file_name,
-                            content_type=version.content_type or "application/pdf")
+        return services.file_response(version.file, version.file_name, inline=True)
 
     @action(detail=False, methods=["post"], url_path=r"sign/(?P<signer_id>\d+)")
     def sign(self, request, signer_id=None):

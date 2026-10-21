@@ -2,10 +2,16 @@ from .context import set_current_ip, set_current_org, set_current_user
 
 
 def client_ip(request):
-    fwd = request.META.get("HTTP_X_FORWARDED_FOR")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR")
+    """The client's address, trusting only the proxies we run (settings.TRUSTED_PROXY_COUNT). Entries a client
+    puts in X-Forwarded-For itself sit further left and are ignored."""
+    from django.conf import settings
+
+    remote = request.META.get("REMOTE_ADDR")
+    count = getattr(settings, "TRUSTED_PROXY_COUNT", 0)
+    if not count:
+        return remote
+    chain = [p.strip() for p in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",") if p.strip()]
+    return chain[-count] if len(chain) >= count else (chain[0] if chain else remote)
 
 
 class RequestContextMiddleware:

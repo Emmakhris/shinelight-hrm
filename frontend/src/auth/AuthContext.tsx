@@ -12,6 +12,7 @@ export interface Me {
   is_superuser: boolean;
   is_platform_admin?: boolean;
   edition?: "self_hosted" | "cloud";
+  version?: string;
   permissions: string[];
   scopes: Record<string, string[]>;
   roles: string[];

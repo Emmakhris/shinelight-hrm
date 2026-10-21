@@ -242,6 +242,11 @@ export default function Layout() {
           );
         })}
       </List>
+      {me?.version && (
+        <Typography variant="caption" color="text.secondary" sx={{ px: 2, py: 1, borderTop: "1px solid #e3e8ef" }}>
+          ShineLight HRM v{me.version}{me.edition === "self_hosted" ? " · self-hosted" : ""}
+        </Typography>
+      )}
     </Box>
   );
 

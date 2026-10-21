@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from apps.audit import services as audit
 from apps.core.exceptions import BusinessRuleError
 from apps.core.views import TenantModelViewSet
+from apps.documents.services import file_response as safe_file_response
 from apps.employees.models import Employee
 from apps.rbac.services import has_perm
 
@@ -232,7 +233,7 @@ class CaseViewSet(TenantModelViewSet):
         if note is None or not note.file:
             raise NotFound()
         audit.log("download", case, {"evidence": note.id})
-        return FileResponse(note.file.open("rb"), filename=note.file_name, as_attachment=False)
+        return safe_file_response(note.file, note.file_name, inline=True)
 
     @action(detail=True, methods=["post"])
     def meeting(self, request, pk=None):

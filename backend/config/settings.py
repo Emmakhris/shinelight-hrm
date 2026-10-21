@@ -20,12 +20,35 @@ env = environ.Env(
 environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY", default="dev-insecure-change-me")
+
+
+def _read_version():
+    for path in (BASE_DIR / "VERSION", BASE_DIR.parent / "VERSION"):      # Docker image / source checkout
+        if path.exists():
+            return path.read_text(encoding="utf-8").strip()
+    return "dev"
+
+
+APP_VERSION = _read_version()
 DEBUG = env("DEBUG", default=True)
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 # Key used to encrypt sensitive fields at rest (bank account numbers, national IDs).
 # Must be a urlsafe base64 32-byte Fernet key in production.
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="")
+
+if not DEBUG:
+    # Refuse to start in production with development secrets: a guessable SECRET_KEY lets anyone forge login
+    # tokens, and without FIELD_ENCRYPTION_KEY bank numbers would be encrypted with a key derived from it.
+    if SECRET_KEY in ("dev-insecure-change-me", "change-me") or len(SECRET_KEY) < 40:
+        raise ImproperlyConfigured("Set SECRET_KEY to a long random value (at least 40 characters) in .env.")
+    if not FIELD_ENCRYPTION_KEY or FIELD_ENCRYPTION_KEY == "change-me":
+        raise ImproperlyConfigured("Set FIELD_ENCRYPTION_KEY in .env (see .env.example for how to generate it).")
+
+# Number of reverse proxies in front of the app that append to X-Forwarded-For (e.g. Caddy + nginx = 2).
+# The client address is read from that position, so a browser can't spoof its IP to dodge login rate limits or
+# API-key IP allowlists. 0 = use the direct peer address.
+TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -175,6 +198,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 25,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {"login": "10/min", "anon": "60/min", "apply": "20/hour"},
+    "NUM_PROXIES": TRUSTED_PROXY_COUNT or None,
     "DATE_INPUT_FORMATS": ["%Y-%m-%d", "%d/%m/%Y"],
     "EXCEPTION_HANDLER": "apps.core.exceptions.exception_handler",
     # ?format=xlsx|csv is used by our export endpoints, not for DRF renderer selection

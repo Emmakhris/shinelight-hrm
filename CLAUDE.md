@@ -28,7 +28,7 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 134 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 140 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)
@@ -100,6 +100,8 @@ npm test && npm run build
 
 - **Tenancy rules:** run background/management code inside `org_context(org)` (loop `Organization.objects.filter(is_active=True)`); `TenantModel.save()` raises when it can't tell the organization. Never let a platform operator (user with no organization) reach tenant data. Deliberate cross-organization reads under RLS go in `tenancy.rls.unrestricted()`. Use bearer tokens (not `force_authenticate`) in tests that depend on host or suspension checks, since those run in the authentication classes. `apps/tenancy/tests.py` crawls every endpoint with a second organization present: keep it passing.
 - Licensing (self-hosted only, `apps/licensing`): Ed25519-signed licence files; only public keys live in `keys.py`. The private key is the vendor's and must never enter the repo (`*.pem`/`*.lic` are git-ignored). Limits go through `tenancy.services.employee_cap`/`check_feature_allowed`, which switch between licence (self-hosted) and plan (cloud). `LicenceMiddleware` makes the API read-only after the grace period; keep `/api/auth/` and `/api/licence/` writable and never block reads. `seed_demo` runs inside `licensing.services.bypass()`.
+- Releases: bump `VERSION`, add a `CHANGELOG.md` section and tag `vX.Y.Z` (see `docs/RELEASING.md`). Security findings and accepted risks: `docs/SECURITY.md`.
+- Security rules from the v1.0 review: serve files through `documents.services.file_response` (type from extension, inline only for PDFs/images); call administrator-configured URLs only after `core.netsafe.check_url`; read client IPs with `core.middleware.client_ip`; never OR an empty `Q()` from `employee_scope_q` (it means "no restriction").
 - Dev multi-org: `<code>.localhost:5173` (Vite proxies with `changeOrigin: false` so the backend sees the host). Demo: `shinelight`, `accraclinic` (admin `clinicadmin`) and the operator `platform`.
 
 - Login is throttled at 10/min, so the smoke test followed by the e2e scripts can hit 429s (`e2e_phase2.py` retries).

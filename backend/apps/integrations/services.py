@@ -37,9 +37,12 @@ def deliver(delivery: WebhookDelivery):
                        "sent_at": timezone.now().isoformat()}, default=str).encode()
     delivery.attempts += 1
     try:
+        from apps.core.netsafe import check_url, request_kwargs
+
+        check_url(hook.url)
         resp = requests.post(hook.url, data=body, timeout=10, headers={
             "Content-Type": "application/json", "X-ShineLight-Event": delivery.event,
-            "X-ShineLight-Signature": sign(hook.secret, body)})
+            "X-ShineLight-Signature": sign(hook.secret, body)}, **request_kwargs())
         delivery.response_code = resp.status_code
         if 200 <= resp.status_code < 300:
             delivery.status = "success"

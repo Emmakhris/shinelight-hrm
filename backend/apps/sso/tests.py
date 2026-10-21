@@ -22,6 +22,10 @@ def idp(org, monkeypatch, settings):
     jwk = jwt.algorithms.RSAAlgorithm.to_jwk(key.public_key(), as_dict=True)
     jwk.update({"kid": "k1", "use": "sig", "alg": "RS256"})
     monkeypatch.setattr(services, "discovery", lambda p: DOC)
+    # the fake IdP host doesn't resolve; the internal-address guard itself is tested in core/test_security.py
+    from apps.core import netsafe
+
+    monkeypatch.setattr(netsafe, "check_url", lambda url, require_https=None: url)
     monkeypatch.setattr(services, "jwks", lambda p, uri: {"keys": [jwk]})
     provider = IdentityProvider.objects.create(name="Microsoft 365", issuer=ISSUER, client_id="client-123",
                                                client_secret="s3cret", email_domains="hospital.test")
@@ -33,7 +37,8 @@ def idp(org, monkeypatch, settings):
                 "email": "ama@hospital.test", "nonce": issued.get("nonce", ""), **claims}
         return jwt.encode(body, key, algorithm="RS256", headers={"kid": "k1"})
 
-    def fake_post(url, data=None, timeout=None):
+    def fake_post(url, data=None, timeout=None, **kwargs):
+        assert kwargs.get("allow_redirects") is False
         assert url == DOC["token_endpoint"] and data["code_verifier"] and data["client_secret"] == "s3cret"
         tok = issued.pop("next_token", None) or token()
         return SimpleNamespace(status_code=200, json=lambda: {"id_token": tok})

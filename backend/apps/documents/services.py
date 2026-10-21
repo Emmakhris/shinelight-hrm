@@ -14,6 +14,21 @@ from apps.rbac.services import can_access_employee, has_perm
 
 from .models import Document, DocumentCategory, DocumentVersion, LetterTemplate
 
+INLINE_TYPES = {"application/pdf", "image/png", "image/jpeg"}
+
+
+def safe_content_type(filename):
+    """Content type from the (allow-listed) extension - never the uploader's claim, which could say text/html."""
+    return mimetypes.guess_type(filename or "")[0] or "application/octet-stream"
+
+
+def file_response(fieldfile, filename, inline=False):
+    from django.http import FileResponse
+
+    ctype = safe_content_type(filename)
+    return FileResponse(fieldfile.open("rb"), as_attachment=not (inline and ctype in INLINE_TYPES),
+                        filename=filename, content_type=ctype)
+
 
 def validate_upload(f):
     ext = os.path.splitext(f.name)[1].lower()
@@ -31,7 +46,7 @@ def add_version(document: Document, file, note="") -> DocumentVersion:
     document.current_version += 1
     document.save(update_fields=["current_version", "updated_at"])
     version = DocumentVersion(document=document, version=document.current_version, file_name=file.name,
-                              content_type=getattr(file, "content_type", "") or mimetypes.guess_type(file.name)[0] or "",
+                              content_type=safe_content_type(file.name),
                               note=note)
     version.file.save(file.name, file, save=False)
     version.save()

@@ -16,6 +16,7 @@ COPY backend/requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY backend/ .
+COPY VERSION ./VERSION
 RUN chmod +x /app/docker-entrypoint.sh && mkdir -p /app/staticfiles /app/media && chown -R shinelight /app
 
 USER shinelight

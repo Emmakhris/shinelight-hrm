@@ -17,6 +17,7 @@ from apps.core.exceptions import BusinessRuleError
 from apps.core.middleware import client_ip
 from apps.core.serializers import DisplayField, TenantSerializer
 from apps.core.views import TenantModelViewSet
+from apps.documents.services import file_response as safe_file_response
 from apps.employees.models import Employee
 from apps.organization.models import Department, Grade, GradeStep, JobTitle, Location, Position
 from apps.rbac.services import has_perm
@@ -404,7 +405,7 @@ class ApplicationViewSet(TenantModelViewSet):
         if not app.cv:
             raise BusinessRuleError("No CV was attached.")
         audit.log("download", app, {"file": "cv"})
-        return FileResponse(app.cv.open("rb"), filename=app.cv_name or "cv", as_attachment=False)
+        return safe_file_response(app.cv, app.cv_name or "cv", inline=True)
 
 
 # ---------------------------------------------------------------- interviews
@@ -514,7 +515,7 @@ class InterviewViewSet(TenantModelViewSet):
         if not app.cv:
             raise BusinessRuleError("No CV was attached.")
         audit.log("download", app, {"file": "cv", "via": "interview"})
-        return FileResponse(app.cv.open("rb"), filename=app.cv_name or "cv", as_attachment=False)
+        return safe_file_response(app.cv, app.cv_name or "cv", inline=True)
 
     @action(detail=True, methods=["post"])
     def score(self, request, pk=None):
