@@ -17,7 +17,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 
 | App | Responsibility |
 |---|---|
-| `tenancy` | `Organization` (tenant) and per-tenant feature flags |
+| `tenancy` | `Organization` (tenant, status, plan, trial), `Plan`, per-tenant feature flags; `resolver.py` (host -> organization), `services.py` (access checks, provisioning, plan limits, trial expiry), `platform.py` (operator console, public tenant info, sign-up), `rls.py` (PostgreSQL row-level security) |
 | `core` | `TenantModel` base (organization FK + auto-filtering manager), request context, holidays, numbering, custom fields, PDF/Excel helpers, Ghana localisation, setup and seed commands |
 | `accounts` | User model, login, MFA (TOTP/SMS), cookie JWT, lockout, login monitoring, user admin |
 | `rbac` | Permission catalogue, roles, scoped role assignments, `has_perm` / `scope_queryset` / field masking |
@@ -52,7 +52,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 
 ## Key design decisions
 
-- **Multi-tenancy readiness.** Every business table has `organization_id`. The request's organization is set by the authentication class, and `TenantManager` plus `TenantModelViewSet` filter by it. Going SaaS means adding tenant onboarding, subdomain routing and (optionally) PostgreSQL row-level security. No schema rewrite is needed.
+- **Multi-tenancy.** Every business table has `organization_id`. The authentication classes set the request's organization from the user and call `tenancy.services.check_access`, which rejects a session or API key used on another organization's host (`<code>.<SAAS_BASE_DOMAIN>`, `<code>.localhost`, or the organization's `domain`), refuses suspended organizations, and limits accounts with no organization (platform operators) to `/api/platform/` and `/api/auth/`. `TenantManager` and `TenantModelViewSet` filter by the organization; `TenantModel.save()` takes the organization from the context or from a tenant-scoped parent and refuses to guess when several organizations exist. On PostgreSQL, `org_context()` and every request also set `app.current_org`, and `manage.py enable_rls` adds a forced row-level security policy to every tenant table, so even `all_objects` cannot cross organizations while it is set. Missing or foreign ids raise `DoesNotExist`, which the API exception handler turns into 404.
 - **Position ≠ person.** `Position` is the approved post (budget, headcount, status); `Employee.position` is who fills it. Vacancy control is enforced on hire and transfer.
 - **Effective dating.** `EmploymentRecord` rows are inserted, never edited, and closed with `effective_to`. `Employee` holds a denormalised current snapshot for fast queries. `as_of(employee, date)` reconstructs history, and back-dated salary changes generate arrears.
 - **One workflow engine.** Leave, corrections, profile changes, letters, loans and payroll approval all run through `workflow.engine`. A domain app only implements a `WorkflowHandler` (title, context for conditions, and `on_approved` / `on_rejected` / … hooks).
@@ -80,3 +80,5 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | Offboarding: revoke access when extensions end, upcoming retirement reminders | 02:30 |
 | Safety: overdue corrective actions, risk assessments due for review | 07:20 |
 | Engagement: close surveys past their closing date | 00:15 |
+| SaaS: trial reminders (3 days before) and suspension of ended trials | 06:05 |
+| AI assistant: delete conversations past the retention period | 03:40 |

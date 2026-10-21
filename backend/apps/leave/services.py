@@ -333,13 +333,16 @@ def adjust(employee, leave_type, days, note, year=None):
                                            note=note)
 
 
-def run_monthly_accrual(on_date=None):
+def run_monthly_accrual(on_date=None, organization=None):
     """Credit 1/12 of the annual entitlement for monthly-accrual policies (idempotent per month)."""
     from apps.employees.models import ACTIVE_STATUSES, Employee
 
     on_date = on_date or dt.date.today()
     created = 0
-    for policy in LeavePolicy.all_objects.filter(accrual_method="monthly", is_active=True).select_related("leave_type"):
+    policies = LeavePolicy.all_objects.filter(accrual_method="monthly", is_active=True).select_related("leave_type")
+    if organization is not None:
+        policies = policies.filter(organization=organization)
+    for policy in policies:
         employees = Employee.all_objects.filter(organization_id=policy.organization_id, status__in=ACTIVE_STATUSES,
                                                 hire_date__lte=on_date)
         for emp in employees:
@@ -361,12 +364,14 @@ def run_monthly_accrual(on_date=None):
     return created
 
 
-def expire_carryover(on_date=None):
+def expire_carryover(on_date=None, organization=None):
     """Expire unused carried-over days after the policy's carryover_expiry_months."""
     on_date = on_date or dt.date.today()
     n = 0
-    for entry in LeaveLedgerEntry.all_objects.filter(entry_type="carryover", year=on_date.year).select_related(
-            "employee", "leave_type"):
+    entries = LeaveLedgerEntry.all_objects.filter(entry_type="carryover", year=on_date.year)
+    if organization is not None:
+        entries = entries.filter(organization=organization)
+    for entry in entries.select_related("employee", "leave_type"):
         policy = get_policy(entry.employee, entry.leave_type)
         if not policy or not policy.carryover_expiry_months:
             continue

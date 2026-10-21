@@ -43,9 +43,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Keep the browser's Host (e.g. accraclinic.localhost:5173) so the backend can tell organizations apart.
     proxy: {
-      "/api": "http://127.0.0.1:8000",
-      "/media": "http://127.0.0.1:8000",
+      "/api": { target: "http://127.0.0.1:8000", changeOrigin: false },
+      "/media": { target: "http://127.0.0.1:8000", changeOrigin: false },
     },
   },
   test: {

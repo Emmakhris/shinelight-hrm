@@ -1,5 +1,6 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 from rest_framework.views import exception_handler as drf_exception_handler
 
 
@@ -18,4 +19,7 @@ def exception_handler(exc, context):
     elif isinstance(exc, DjangoValidationError):
         detail = exc.message_dict if hasattr(exc, "error_dict") else {"detail": exc.messages}
         exc = serializers.ValidationError(detail)
+    elif isinstance(exc, ObjectDoesNotExist):
+        # a missing id - or another organization's, hidden by the tenant filter - is a 404, never a 500
+        exc = exceptions.NotFound()
     return drf_exception_handler(exc, context)

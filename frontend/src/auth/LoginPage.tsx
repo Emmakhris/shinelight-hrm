@@ -5,6 +5,7 @@ import axios from "axios";
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, errorMessage } from "../api/client";
+import { useApi } from "../api/hooks";
 import { useAuth, type Me } from "./AuthContext";
 
 type Step = "login" | "mfa" | "setup" | "forgot" | "reset" | "sso";
@@ -32,6 +33,8 @@ export default function LoginPage() {
   const [methods, setMethods] = useState<string[]>([]);
   const [method, setMethod] = useState("totp");
   const [qr, setQr] = useState<string | null>(null);
+  const tenant = useApi<{ organization: null | { name: string; logo: string | null; active: boolean; sso: boolean }; signup: boolean }>("/public/tenant/");
+  const org = tenant.data?.organization;
   const ssoError = params.get("sso_error");
   const [error, setError] = useState<string | null>(
     ssoError ? SSO_ERRORS[ssoError] || "Single sign-on failed. Please try again or contact your IT administrator." : null);
@@ -142,8 +145,9 @@ export default function LoginPage() {
       <Card variant="elevation" sx={{ width: "100%", maxWidth: 420, borderRadius: 3 }} elevation={8}>
         <CardContent sx={{ p: 4 }}>
           <Stack alignItems="center" spacing={1} mb={3}>
-            <Box component="img" src="/favicon.svg" alt="" sx={{ width: 56, height: 56 }} />
-            <Typography variant="h5" fontWeight={700}>ShineLight HRM</Typography>
+            <Box component="img" src={org?.logo || "/favicon.svg"} alt="" sx={{ width: 56, height: 56, objectFit: "contain" }} />
+            <Typography variant="h5" fontWeight={700}>{org?.name || "ShineLight HRM"}</Typography>
+            {org && <Typography variant="caption" color="text.secondary">ShineLight HRM</Typography>}
             <Typography variant="body2" color="text.secondary">
               {step === "login" && "Sign in to your account"}
               {step === "mfa" && "Two-step verification"}
@@ -153,6 +157,7 @@ export default function LoginPage() {
               {step === "sso" && "Sign in with your organization account"}
             </Typography>
           </Stack>
+          {org && !org.active && <Alert severity="warning" sx={{ mb: 2 }}>This organization's access is currently suspended.</Alert>}
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           {info && <Alert severity="info" sx={{ mb: 2 }}>{info}</Alert>}
 
@@ -169,6 +174,7 @@ export default function LoginPage() {
                 <Link component="button" type="button" variant="body2" onClick={() => { setStep("forgot"); setInfo(null); }}>
                   Forgot password?
                 </Link>
+                {tenant.data?.signup && <Link href="/signup" variant="body2">New to ShineLight HRM? Start a free trial</Link>}
                 <Divider>or</Divider>
                 <Button variant="outlined" startIcon={<Business />} onClick={() => { setStep("sso"); setError(null); }}>
                   Sign in with single sign-on

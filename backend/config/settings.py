@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
     DEBUG=(bool, False),
-    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", ".localhost"]),
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:5173", "http://127.0.0.1:5173"]),
 )
 environ.Env.read_env(BASE_DIR / ".env")
@@ -238,6 +238,16 @@ FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 SSO_REDIRECT_BASE = env("SSO_REDIRECT_BASE", default="")
 # The AI assistant stays unavailable until a key is set AND the organization enables the ai_assistant feature.
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
+# ---------------------------------------------------------------- multi-organization (SaaS)
+# Organizations are reached at <code>.<SAAS_BASE_DOMAIN> (and <code>.localhost in development) or their own
+# custom domain. Leave SAAS_BASE_DOMAIN empty for a single-organization deployment.
+SAAS_BASE_DOMAIN = env("SAAS_BASE_DOMAIN", default="")
+SAAS_SIGNUP_ENABLED = env.bool("SAAS_SIGNUP_ENABLED", default=False)
+SAAS_DEFAULT_PLAN = env("SAAS_DEFAULT_PLAN", default="trial")
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", default=False)
+# PostgreSQL row-level security backstop (see apps/tenancy/rls.py; run `manage.py enable_rls`).
+DB_ROW_LEVEL_SECURITY = env.bool("DB_ROW_LEVEL_SECURITY", default=False)
 
 # ---------------------------------------------------------------- security
 SESSION_COOKIE_SECURE = not DEBUG

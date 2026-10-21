@@ -1,7 +1,7 @@
 # ShineLight HRM
 
 An enterprise Human Resource Management System for Ghanaian organizations, with an optional hospital/clinical workforce module.
-Built for a single organization today; every record is tenant-scoped, so the same codebase can become multi-tenant SaaS later.
+Runs for one organization or as multi-organization SaaS: each organization has its own address (subdomain or custom domain), and its data is isolated in the application and, on PostgreSQL, by row-level security.
 
 **Stack:** Django 5 + Django REST Framework + PostgreSQL + Celery/Redis · React 18 + TypeScript + MUI (installable PWA) · Docker Compose.
 
@@ -65,6 +65,7 @@ The workflow engine also skips a step when its only approver already approved an
 | **Report builder** | Self-service reports over approved datasets (employees, leave, attendance, training, payslips) with columns, filters, grouping, summaries (count, sum, average, min, max), sorting and charts; derived fields such as tenure and age bands; saved private or shared definitions that always run in the viewer's own data scope; salary and personal fields need their own permission; exports go through the same approval and audit as standard reports and can be scheduled by email |
 | **Predictive analytics** | 12-month turnover forecast by department (trailing turnover smoothed for small departments, with a likely range) and a monthly headcount projection; retirement forecast by year, department and job title, with critical positions losing their incumbent and whether a ready successor exists; transparent attrition-risk indicators (each factor shown with its points and evidence, weights tunable per organization) restricted to a separate permission, hidden from the employee concerned and audit-logged on every view |
 | **Single sign-on** | OpenID Connect sign-in with Microsoft 365 / Entra ID, Google Workspace, Okta or any OIDC provider (authorization code + PKCE, signed state, ID-token signature, issuer, audience and nonce checks); "Sign in with single sign-on" by work email; staff matched to their existing account by work email and then by the provider's stable subject; optional automatic logins for existing active employees; per-domain "SSO only" with a break-glass password route for administrators; client secrets encrypted at rest |
+| **Multi-organization (SaaS)** | Organizations reached at `<code>.<your domain>` or their own domain; sessions and API keys pinned to their organization's address; platform operator console (organizations, plans, features, suspension, usage counts) that cannot read any HR data; plans with employee caps and included modules; trials with reminders and automatic suspension; optional self-service sign-up; PostgreSQL row-level security as a database backstop; isolation tests that crawl every endpoint with a second organization's data present |
 | **Governed AI assistant** | Off by default; HR policy Q&A answered only from published knowledge-base articles with sources listed; optional access to the user's own leave balances, payslip summary, profile and pending requests, and aggregate reports within their permissions; read-only, permission-aware tools (the model never queries the database); identifiers typed by users redacted before sending; never decides or recommends hiring, dismissal, promotion, discipline or pay; private conversations purged after a retention period; daily limits; feedback; usage (not content) in the audit trail. Uses Claude via the Anthropic API when `ANTHROPIC_API_KEY` is set |
 
 See [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -98,12 +99,14 @@ docker compose up -d --build
 docker compose exec backend python manage.py setup_organization --name "Your Organization" --code yourorg --admin admin --email you@org.com --features payroll,sms
 ```
 
+**Running as SaaS:** set `SAAS_BASE_DOMAIN` (e.g. `shinelighthrm.com`) with a wildcard DNS record and certificate for `*.shinelighthrm.com`, create an operator with `manage.py create_platform_admin <username>`, and add organizations from the platform console. On PostgreSQL, connect as a non-superuser role, run `manage.py enable_rls` after each migration and set `DB_ROW_LEVEL_SECURITY=True`. Self-service sign-up stays off unless `SAAS_SIGNUP_ENABLED=True`.
+
 Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIONS.md](docs/OPERATIONS.md). **Before paying anyone, work through [docs/GO_LIVE_CHECKLIST.md](docs/GO_LIVE_CHECKLIST.md)**: the statutory rates are seeded unverified.
 
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 118 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning, report builder and forecasts, single sign-on, AI assistant
+cd backend && .venv/Scripts/python -m pytest          # 127 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning, report builder and forecasts, single sign-on, AI assistant, multi-organization isolation
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

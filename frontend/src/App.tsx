@@ -126,12 +126,15 @@ const PlanningPage = lazy(() => import("./pages/talent/Planning"));
 const PlanDetail = lazy(() => import("./pages/talent/Planning").then((m) => ({ default: m.PlanDetail })));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
+const Signup = lazy(() => import("./pages/public/Signup"));
+const Platform = lazy(() => import("./pages/platform/Platform"));
 
 // Public pages (career site and offer response) work signed in or not.
 const publicRoutes = [
   <Route key="c" path="/careers/:org" element={<Careers />} />,
   <Route key="cv" path="/careers/:org/:id" element={<Careers />} />,
   <Route key="o" path="/offer/:token" element={<OfferResponse />} />,
+  <Route key="s" path="/signup" element={<Signup />} />,
 ];
 
 function Guard({ perm, scope, feature, children }: { perm?: string | string[]; scope?: string; feature?: string; children: ReactNode }) {
@@ -158,6 +161,17 @@ export default function App() {
   }
   const g = (el: ReactNode, perm?: string | string[], opts: { scope?: string; feature?: string } = {}) =>
     <Guard perm={perm} scope={opts.scope} feature={opts.feature}>{el}</Guard>;
+  if (me.is_platform_admin) {
+    // Platform operators have no organization: they only get the platform console.
+    return (
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/change-password" element={<Box sx={{ p: 3, maxWidth: 520, mx: "auto" }}><ChangePassword /></Box>} />
+          <Route path="*" element={me.must_change_password ? <Navigate to="/change-password" replace /> : <Platform />} />
+        </Routes>
+      </Suspense>
+    );
+  }
   return (
     <Suspense fallback={<Loading />}>
       <Routes>

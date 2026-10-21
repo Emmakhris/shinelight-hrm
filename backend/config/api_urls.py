@@ -30,12 +30,15 @@ from apps.assistant import views as ai
 from apps.servicedesk import views as sd
 from apps.talent import views as tal
 from apps.sso import views as sso
+from apps.tenancy import platform as plat
 from apps.tenancy import views as ten
 from apps.workflow import views as wf
 
 router = DefaultRouter()
 # administration
 router.register("admin/users", UserViewSet, basename="users")
+router.register("platform/organizations", plat.OrganizationAdminViewSet, basename="platform-organizations")
+router.register("platform/plans", plat.PlanViewSet, basename="platform-plans")
 router.register("admin/sso-providers", sso.IdentityProviderViewSet, basename="sso-providers")
 router.register("assistant/conversations", ai.ConversationViewSet, basename="assistant-conversations")
 router.register("admin/login-attempts", LoginAttemptViewSet, basename="login-attempts")
@@ -255,6 +258,8 @@ urlpatterns = [
     path("public/careers/<slug:org_code>/<int:pk>/", rec.CareerVacancyView.as_view()),
     path("public/careers/<slug:org_code>/<int:pk>/apply/", rec.CareerApplyView.as_view()),
     path("public/offers/<str:token>/", rec.OfferResponseView.as_view()),
+    path("public/tenant/", plat.TenantInfoView.as_view()),
+    path("public/signup/", plat.SignupView.as_view()),
     path("sso/discover/", sso.DiscoverView.as_view()),
     path("sso/<int:pk>/start/", sso.StartView.as_view()),
     path("sso/callback/", sso.CallbackView.as_view()),

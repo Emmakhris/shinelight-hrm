@@ -14,7 +14,15 @@ def get_current_org():
 
 
 def set_current_org(org):
-    return _current_org.set(org)
+    token = _current_org.set(org)
+    _sync_db(org)
+    return token
+
+
+def _sync_db(org):
+    from apps.tenancy.rls import set_db_org
+
+    set_db_org(org.pk if org is not None else None)
 
 
 def get_current_user():
@@ -37,8 +45,10 @@ def set_current_ip(ip):
 def org_context(org, user=None):
     t1 = _current_org.set(org)
     t2 = _current_user.set(user)
+    _sync_db(org)
     try:
         yield
     finally:
         _current_org.reset(t1)
         _current_user.reset(t2)
+        _sync_db(_current_org.get())

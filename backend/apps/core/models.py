@@ -51,12 +51,25 @@ class TenantModel(TimeStampedModel):
     def save(self, *args, **kwargs):
         if not self.organization_id:
             org = get_current_org()
-            if org is None:
+            org_id = org.pk if org is not None else self._parent_org_id()
+            if org_id is None:
                 from apps.tenancy.models import Organization
 
-                org = Organization.get_default()
-            self.organization = org
+                default = Organization.get_default()
+                if default is None:
+                    raise RuntimeError(f"No organization for new {type(self).__name__}: run the code inside "
+                                       "org_context(org) or set organization explicitly.")
+                org_id = default.pk
+            self.organization_id = org_id
         super().save(*args, **kwargs)
+
+    def _parent_org_id(self):
+        """Take the organization from a tenant-scoped parent (e.g. a leave entry's employee)."""
+        for f in self._meta.concrete_fields:
+            if f.is_relation and (f.many_to_one or f.one_to_one) and f.name != "organization" and getattr(self, f.attname, None) \
+                    and issubclass(f.related_model, TenantModel):
+                return getattr(self, f.name).organization_id
+        return None
 
 
 class PublicHoliday(TenantModel):

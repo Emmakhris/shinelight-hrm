@@ -66,6 +66,10 @@ app.conf.beat_schedule = {
         "task": "apps.offboarding.tasks.offboarding_housekeeping",
         "schedule": crontab(hour=2, minute=30),
     },
+    "expire-trials": {
+        "task": "apps.tenancy.tasks.expire_trials",
+        "schedule": crontab(hour=6, minute=5),
+    },
     "purge-assistant-conversations": {
         "task": "apps.assistant.tasks.purge_assistant_conversations",
         "schedule": crontab(hour=3, minute=40),

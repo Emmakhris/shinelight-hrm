@@ -12,7 +12,7 @@ import requests
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 PASSWORD = "Demo@ShineLight2026"  # demo-only, see apps/core/management/commands/seed_demo.py
 USERS = ["admin", "hrdirector", "hrofficer", "payroll", "approver", "manager", "employee", "auditor",
-         "recruiter", "itsupport", "newhire", "safety", "ohdoctor"]
+         "recruiter", "itsupport", "newhire", "safety", "ohdoctor", "clinicadmin", "platform"]
 ENDPOINTS = [
     "auth/me/", "me/summary/", "me/profile/", "me/documents/", "me/letters/", "me/team/", "me/change-requests/",
     "employees/", "employees/data-quality/", "employees/change-requests/", "employees/categories/", "directory/",

@@ -57,6 +57,10 @@ def find_duplicates(first_name, last_name, date_of_birth=None, ghana_card_no="",
 @transaction.atomic
 def hire(data: dict, user=None, allow_duplicate=False) -> Employee:
     """Create an employee and the initial 'hire' employment record."""
+    from apps.core.context import get_current_org
+    from apps.tenancy.services import check_employee_limit
+
+    check_employee_limit(get_current_org())
     data = dict(data)
     if not allow_duplicate:
         dups = find_duplicates(data.get("first_name", ""), data.get("last_name", ""), data.get("date_of_birth"),

@@ -60,6 +60,10 @@ class FeatureToggleView(APIView):
         code = request.data["code"]
         if code not in dict(OrganizationFeature.FEATURES):
             return Response({"detail": "Unknown feature."}, status=400)
+        if request.data.get("enabled"):
+            from .services import check_feature_allowed
+
+            check_feature_allowed(org, code)
         feat, _ = OrganizationFeature.objects.get_or_create(organization=org, code=code)
         feat.enabled = bool(request.data.get("enabled"))
         feat.save()

@@ -10,6 +10,7 @@ export interface Me {
   must_change_password: boolean;
   mfa_enabled: boolean;
   is_superuser: boolean;
+  is_platform_admin?: boolean;
   permissions: string[];
   scopes: Record<string, string[]>;
   roles: string[];

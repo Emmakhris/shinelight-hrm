@@ -589,6 +589,8 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         if admin_username:
             User = get_user_model()
             admin = User.objects.filter(username=admin_username).first()
+            if admin is not None and admin.organization_id != org.id:
+                raise ValueError(f"Username '{admin_username}' belongs to another organization.")
             if admin is None:
                 admin = User.objects.create_user(admin_username, admin_email, admin_password, organization=org,
                                                  is_staff=True, first_name="System", last_name="Administrator")

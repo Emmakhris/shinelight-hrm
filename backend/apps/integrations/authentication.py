@@ -30,6 +30,9 @@ class ApiKeyAuthentication(BaseAuthentication):
         user = key.service_user
         if not user.is_active:
             raise exceptions.AuthenticationFailed("Service account disabled.")
+        from apps.tenancy.services import check_access
+
+        check_access(request, user)
         ApiKey.all_objects.filter(pk=key.pk).update(last_used_at=timezone.now())
         set_current_user(user)
         set_current_org(user.organization)

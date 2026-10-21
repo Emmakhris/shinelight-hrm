@@ -4,7 +4,7 @@ ShineLight HRM is an enterprise HRMS for Ghanaian organizations.
 - **Backend:** Django 5 + DRF + PostgreSQL + Celery/Redis in `backend/`.
 - **Frontend:** React 18 + TypeScript + MUI PWA in `frontend/`.
 - **Deployment:** Docker Compose.
-- It runs single-organization today but must stay **SaaS-ready**: never add single-tenant assumptions.
+- It runs for one organization or as **multi-organization SaaS** (this branch): never add single-tenant assumptions.
 
 Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: `docs/ARCHITECTURE.md`.
 
@@ -17,7 +17,7 @@ Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: 
   3. ~~LMS~~ (done);
   4. ~~employee relations, assets and offboarding~~ (done);
   5. ~~engagement and OHS~~ (done).
-- **Phase 4:** succession and workforce planning, report builder/predictive analytics, single sign-on (OIDC) and the governed AI assistant are done. SSO and the assistant are on `main`; this `saas-multi-org` branch also carries `phase-4`. Next: multi-organization SaaS conversion.
+- **Phase 4:** succession and workforce planning, report builder/predictive analytics, single sign-on (OIDC) and the governed AI assistant are done. SSO and the assistant are on `main`; this `saas-multi-org` branch also carries `phase-4`. Multi-organization SaaS is done on this branch (routing by host, platform console, plans, trials, RLS). Next: online billing once a payment provider is chosen.
 
 ## Commands
 
@@ -28,7 +28,7 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 118 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 127 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)
@@ -97,6 +97,9 @@ npm test && npm run build
 - Charts: `components/Charts.tsx`, which uses the validated categorical palette in fixed order. Never dual axes.
 
 ## Gotchas
+
+- **Tenancy rules:** run background/management code inside `org_context(org)` (loop `Organization.objects.filter(is_active=True)`); `TenantModel.save()` raises when it can't tell the organization. Never let a platform operator (user with no organization) reach tenant data. Deliberate cross-organization reads under RLS go in `tenancy.rls.unrestricted()`. Use bearer tokens (not `force_authenticate`) in tests that depend on host or suspension checks, since those run in the authentication classes. `apps/tenancy/tests.py` crawls every endpoint with a second organization present: keep it passing.
+- Dev multi-org: `<code>.localhost:5173` (Vite proxies with `changeOrigin: false` so the backend sees the host). Demo: `shinelight`, `accraclinic` (admin `clinicadmin`) and the operator `platform`.
 
 - Login is throttled at 10/min, so the smoke test followed by the e2e scripts can hit 429s (`e2e_phase2.py` retries).
 - Released payroll periods can't take adjustments. Expense settlement via payroll needs an **open** period.

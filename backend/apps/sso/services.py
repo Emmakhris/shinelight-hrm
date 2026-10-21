@@ -58,9 +58,12 @@ def provider_for_email(email):
 
 def domain_taken(domains, exclude_pk=None):
     """Domains must map to one provider across all organizations, or sign-in would be ambiguous."""
+    from apps.tenancy.rls import unrestricted
+
     clash = []
-    for p in IdentityProvider.all_objects.exclude(pk=exclude_pk):
-        clash += [d for d in domains if d in p.domains]
+    with unrestricted():
+        for p in IdentityProvider.all_objects.exclude(pk=exclude_pk):
+            clash += [d for d in domains if d in p.domains]
     return clash
 
 

@@ -5,6 +5,9 @@ Demo logins (all share DEMO_PASSWORD below; MFA disabled for the demo org):
   recruiter (recruitment officer), itsupport (IT provisioning), newhire (employee in onboarding),
   safety (health & safety officer), ohdoctor (occupational health - the only role that sees clinical notes)
 Public career site: /careers/shinelight
+Multi-organization demo: platform (platform operator console, no HR data); a second organization
+"Accra Family Clinic" at accraclinic.localhost:5173 with administrator clinicadmin. The main demo
+organization is at shinelight.localhost:5173 (plain localhost also works).
 """
 
 import datetime as dt
@@ -61,6 +64,7 @@ class Command(BaseCommand):
             self._seed_planning(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_reports(org, admin)
+        self._seed_platform(org)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -1076,3 +1080,37 @@ class Command(BaseCommand):
                                                           "sort": "contract_end_date"}),
             ):
                 ReportDefinition.objects.get_or_create(name=name, defaults={**spec, "visibility": "shared"})
+
+    def _seed_platform(self, org):
+        """Plans, a platform operator and a second small organization (multi-organization demo). Idempotent."""
+        from apps.employees.models import Employee
+        from apps.tenancy.models import Organization, Plan
+
+        User = get_user_model()
+        org.plan = Plan.objects.filter(code="healthcare").first()
+        org.save(update_fields=["plan"])
+        if not User.objects.filter(username="platform").exists():
+            User.objects.create_user("platform", "platform@shinelight.local", DEMO_PASSWORD, organization=None,
+                                     is_platform_admin=True, first_name="Platform", last_name="Operator")
+        if Organization.objects.filter(code="accraclinic").exists():
+            return
+        clinic, clinic_admin = setup_organization("Accra Family Clinic", "accraclinic", "clinicadmin", DEMO_PASSWORD,
+                                                  "admin@accraclinic.local", ["payroll", "sms"], require_mfa=False)
+        clinic.plan = Plan.objects.filter(code="trial").first()
+        clinic.status = "trial"
+        clinic.trial_ends_at = dt.date.today() + dt.timedelta(days=21)
+        clinic.save()
+        from apps.employees.services import hire
+        from apps.organization.models import Department, Grade, GradeStep, JobTitle
+
+        with org_context(clinic, clinic_admin), transaction.atomic():
+            dept = Department.objects.create(code="OPD", name="Outpatients")
+            grade = Grade.objects.create(code="C1", name="Clinical", level=1, min_salary=D("3000"), max_salary=D("4500"))
+            step = GradeStep.objects.create(grade=grade, step=1, basic_salary=D("3000"))
+            title = JobTitle.objects.create(name="Clinic Nurse")
+            for first, last, g in (("Efua", "Asante", "female"), ("Nii", "Lamptey", "male"), ("Adwoa", "Boakye", "female")):
+                if not Employee.objects.filter(first_name=first, last_name=last).exists():
+                    hire({"first_name": first, "last_name": last, "gender": g, "hire_date": dt.date(2024, 3, 1),
+                          "department": dept, "job_title": title, "grade": grade, "grade_step": step,
+                          "basic_salary": D("3000")}, allow_duplicate=True)
+        self.stdout.write("Multi-organization demo: platform operator 'platform', second organization 'accraclinic'.")

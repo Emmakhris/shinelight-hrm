@@ -37,6 +37,9 @@ class CookieJWTAuthentication(JWTAuthentication):
             raise exceptions.AuthenticationFailed("Account disabled.")
         if from_cookie and request.method not in ("GET", "HEAD", "OPTIONS"):
             _enforce_csrf(request)
+        from apps.tenancy.services import check_access
+
+        check_access(request, user)
         set_current_user(user)
         set_current_org(user.organization)
         return user, validated

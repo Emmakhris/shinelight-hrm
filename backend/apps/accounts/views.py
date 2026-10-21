@@ -79,6 +79,7 @@ def me_payload(user):
         "must_change_password": user.must_change_password,
         "mfa_enabled": user.mfa_enabled,
         "is_superuser": user.is_superuser,
+        "is_platform_admin": bool(getattr(user, "is_platform_admin", False) and user.organization_id is None),
         "permissions": all_permission_codes(user),
         "scopes": {code: sorted({g.scope for g in gs}) for code, gs in grants.items()},
         "roles": list(user.role_assignments.values_list("role__code", flat=True)),
@@ -134,9 +135,17 @@ class LoginView(APIView):
         s = LoginSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         username = s.validated_data["username"].strip()
-        candidate = User.objects.filter(username__iexact=username).first() or User.objects.filter(
-            email__iexact=username
-        ).first()
+        from apps.tenancy.resolver import request_tenant
+
+        users = User.objects.all()
+        tenant = request_tenant(request)
+        if tenant is not None:                          # on an organization's address only its users sign in
+            users = users.filter(organization=tenant)
+        candidate = users.filter(username__iexact=username).first() or users.filter(email__iexact=username).first()
+        if candidate and candidate.organization_id and not candidate.organization.is_active:
+            _record_attempt(request, username, candidate, False, "org_suspended")
+            return Response({"detail": "Your organization's access is suspended. Please contact your administrator.",
+                             "code": "org_suspended"}, status=status.HTTP_403_FORBIDDEN)
         if candidate and candidate.is_locked:
             _record_attempt(request, username, candidate, False, "locked")
             return Response({"detail": "Account temporarily locked. Try again later."}, status=status.HTTP_423_LOCKED)
@@ -147,8 +156,10 @@ class LoginView(APIView):
             return Response({"detail": "Your organization signs in with single sign-on. Use "
                                        "\"Sign in with single sign-on\" and your work email.", "code": "sso_required"},
                             status=status.HTTP_403_FORBIDDEN)
-        user = authenticate(request, username=candidate.username if candidate else username,
-                            password=s.validated_data["password"])
+        if candidate is None:
+            _record_attempt(request, username, None, False, "bad_credentials")
+            return Response({"detail": "Invalid username or password."}, status=status.HTTP_401_UNAUTHORIZED)
+        user = authenticate(request, username=candidate.username, password=s.validated_data["password"])
         if user is None:
             if candidate:
                 candidate.failed_login_count += 1

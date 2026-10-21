@@ -16,6 +16,9 @@ class User(AbstractUser):
     locked_until = models.DateTimeField(null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
     preferences = models.JSONField(default=dict, blank=True)
+    is_platform_admin = models.BooleanField(
+        default=False, help_text="Platform operator (no organization): manages organizations and plans, "
+                                 "never sees HR data.")
 
     objects = UserManager()
 
