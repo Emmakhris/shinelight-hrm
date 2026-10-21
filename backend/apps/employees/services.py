@@ -237,7 +237,13 @@ def separate(employee: Employee, exit_date: dt.date, reason: str, notes="", rehi
     return record
 
 
-def revoke_access(employee: Employee):
+def revoke_access(employee: Employee, force=False):
+    """Disable the account at exit, unless an approved access extension (handover) is still running."""
+    if not force:
+        from apps.offboarding.services import access_extended
+
+        if access_extended(employee):
+            return
     if employee.user_id and employee.user.is_active:
         user = employee.user
         user.is_active = False

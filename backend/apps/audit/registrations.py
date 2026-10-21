@@ -71,6 +71,13 @@ AUDITED = {
     "learning.Enrollment": {"exclude": ["modules_done"]},
     "learning.TrainingBudget": {},
     "learning.CPDRecord": {},
+    "relations.Case": {"sensitive": ["description", "outcome_summary", "investigation_plan"]},
+    "relations.CaseAction": {"sensitive": ["details", "employee_response"]},
+    "relations.Appeal": {"sensitive": ["grounds", "decision"]},
+    "assets.Asset": {},
+    "assets.Assignment": {},
+    "offboarding.Separation": {"sensitive": ["details"]},
+    "offboarding.ClearanceItem": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

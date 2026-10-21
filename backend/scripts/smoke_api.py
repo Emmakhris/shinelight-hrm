@@ -53,6 +53,9 @@ ENDPOINTS = [
     "learning/enrollments/", "learning/enrollments/?mine=1", "learning/enrollments/?team=1", "learning/budgets/",
     "learning/cpd/", "learning/cpd/summary/", "learning/cpd-requirements/", "learning/development-goals/",
     "learning/mentorships/", "learning/compliance/", "learning/needs/", "learning/report/",
+    "relations/cases/", "relations/my/", "relations/report/", "assets/categories/", "assets/items/",
+    "assets/assignments/", "assets/assignments/?mine=1", "assets/dashboard/", "offboarding/separations/",
+    "offboarding/separations/?mine=1", "offboarding/separations/?clearance_for_me=1", "offboarding/analytics/",
 ]
 
 failures = 0

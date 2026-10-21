@@ -52,6 +52,8 @@ class Command(BaseCommand):
             self._seed_performance(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_learning(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_exits(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -686,3 +688,121 @@ class Command(BaseCommand):
                                             next_steps="Shadow the next hearing.")
         self.stdout.write(f"Learning demo: {Enrollment.objects.count()} enrolments, compliance "
                           f"{lms.compliance_matrix()['compliance_percent']}%.")
+
+
+    def _seed_exits(self, org, admin):
+        """Employee relations cases, assets and exits (Phase 3). Idempotent."""
+        from apps.assets import services as assets
+        from apps.assets.models import Asset, AssetCategory
+        from apps.employees.models import Employee
+        from apps.offboarding import services as offb
+        from apps.offboarding.models import ExitInterview, Separation
+        from apps.relations import services as er
+        from apps.relations.models import Case
+        from apps.workflow import engine
+        from apps.workflow.models import WorkflowTask
+
+        if Case.objects.exists() or Asset.objects.exists() or not Employee.objects.exists():
+            return
+        User = get_user_model()
+        today = dt.date.today()
+        now = timezone.now()
+        hro, hrd = User.objects.get(username="hrofficer"), User.objects.get(username="hrdirector")
+        it = User.objects.filter(username="itsupport").first() or hrd
+        nurses = list(Employee.objects.filter(job_title__name="Staff Nurse", status__in=["active", "probation"])
+                      .exclude(user__username="employee"))
+        demo = User.objects.get(username="employee").employee
+
+        def approve(rtype):
+            while (t := WorkflowTask.objects.filter(status="pending", instance__request_type=rtype).first()):
+                engine.act(t, t.assignee, "approve", "OK")
+
+        # ---- assets: laptops for office staff, access cards for everyone, scrubs for nurses
+        cats = {c.code: c for c in AssetCategory.objects.all()}
+        office = list(Employee.objects.filter(job_title__is_clinical=False, status__in=["active", "probation"])
+                      .exclude(job_title__name="Porter"))
+        for i, emp in enumerate(office):
+            a = Asset.objects.create(tag=f"IT-{i + 1:04d}", category=cats["laptop"], description=random.choice(
+                ["Dell Latitude 5440", "HP EliteBook 840", "Lenovo ThinkPad E14"]), serial_number=f"SN{730000 + i * 17}",
+                replacement_value=D("7500"), purchase_date=today - dt.timedelta(days=random.randint(100, 900)))
+            asg = assets.issue(it, emp, asset=a)
+            if i % 3:
+                assets.acknowledge(asg, emp.user) if emp.user_id else None
+        for i in range(4):
+            Asset.objects.create(tag=f"IT-{len(office) + i + 1:04d}", category=cats["laptop"], description="Dell Latitude 5440",
+                                 serial_number=f"SN{740000 + i}", replacement_value=D("7500"))
+        for i, emp in enumerate(Employee.objects.filter(status__in=["active", "probation"])):
+            card = Asset.objects.create(tag=f"AC-{i + 1:04d}", category=cats["access_card"], description="Staff ID / access card",
+                                        replacement_value=D("50"))
+            assets.issue(hro, emp, asset=card)
+        for emp in nurses[:6]:
+            assets.issue(hro, emp, category=cats["uniform"], item="Scrubs (blue)", quantity=3)
+        if nurses:
+            lost = assets.issue(hro, nurses[0], category=cats["ppe"], item="Safety goggles")
+            lost.notes = "Consumable PPE"
+            lost.save(update_fields=["notes"])
+
+        # ---- employee relations
+        g = er.open_case(demo.user, {"case_type": "grievance", "title": "Unfair night-shift allocation",
+                                     "description": "I have been rostered for nights for six consecutive weeks while "
+                                                    "colleagues rotate monthly.", "severity": "medium"})
+        er.assign(g, hrd, investigators=[hro], plan="Review 3 months of rosters; interview ward in-charge.")
+        if len(nurses) >= 3:
+            m = er.open_case(hro, {"case_type": "misconduct", "title": "Repeated lateness and absence from post",
+                                   "description": "Late 9 times in October; left the ward unattended on 14/10.",
+                                   "severity": "high", "policy_reference": "Code of conduct s.4.2"},
+                             respondents=[nurses[1]])
+            er.add_note(m, hro, "finding", "Clock records confirm 9 late arrivals; two witness statements obtained.")
+            meet = er.schedule_meeting(m, hro, {"kind": "hearing", "scheduled_at": now + dt.timedelta(days=2),
+                                                "venue": "HR meeting room", "attendees": "HR Officer, Nursing Officer"},
+                                       [nurses[1]])
+            meet.save()
+            closed = er.open_case(hro, {"case_type": "policy_violation", "title": "Sharing of patient photos",
+                                        "description": "Posted a patient photo in a WhatsApp group.",
+                                        "severity": "high"}, respondents=[nurses[2]])
+            h = er.schedule_meeting(closed, hro, {"kind": "hearing", "scheduled_at": now - dt.timedelta(days=20)},
+                                    [nurses[2]])
+            er.record_minutes(h, hro, "Employee admitted posting; removed it immediately; first offence.")
+            er.decide(closed, hro, "written_warning", "Breach of patient confidentiality (Act 843); first offence.",
+                      [{"employee": nurses[2], "action_type": "written_warning",
+                        "details": "Breach of patient confidentiality by sharing a patient photograph."}])
+            er.close(closed, hro, "Warning issued; data protection refresher assigned.")
+        er.open_case(hro, {"case_type": "conflict", "title": "Dispute between lab staff over workload",
+                           "description": "Recurring arguments about weekend cover.", "severity": "low"})
+
+        # ---- exits: one completed last month, one in clearance, one awaiting approval
+        accts = list(Employee.objects.filter(job_title__name="Accountant", status="active"))
+        ksi = list(Employee.objects.filter(department__code="KSI_OPD", status="active"))
+        if ksi:
+            leaver = ksi[0]
+            sep = Separation.objects.create(
+                employee=leaver, exit_type="resignation", reason="travel", details="Relocating to the UK.",
+                notice_date=today - dt.timedelta(days=60), last_working_day=today - dt.timedelta(days=30),
+                notice_required_days=30, status="pending", submitted_by=hro, reference="EX-DEMO-0001")
+            offb.approve(sep, hro)
+            for a in assets.outstanding(leaver):
+                assets.receive(a, hro, "good")
+            ei = ExitInterview.objects.get(separation=sep)
+            ei.ratings = {"Pay and benefits": 2, "Relationship with supervisor": 4, "Career growth and training": 3,
+                          "Workload": 2, "Working conditions": 3, "Recognition": 2, "Team and colleagues": 5}
+            ei.primary_reason, ei.would_recommend, ei.would_return = "travel", True, True
+            ei.what_to_improve, ei.completed_at = "Night-shift allowance and staffing levels.", now - dt.timedelta(days=35)
+            ei.save()
+            for item in sep.clearance.all():
+                item.status, item.cleared_by, item.cleared_at = "cleared", hro, now - dt.timedelta(days=28)
+                item.save()
+            offb.complete(sep, hro)
+        if accts:
+            sep2 = offb.initiate(accts[0].user or hro, accts[0], {
+                "exit_type": "resignation", "reason": "better_pay", "details": "I have accepted an offer elsewhere.",
+                "notice_date": today - dt.timedelta(days=10), "last_working_day": today + dt.timedelta(days=12)})
+            approve("separation")
+            sep2.refresh_from_db()
+            for item in sep2.clearance.filter(owner__in=["supervisor", "finance"]):
+                offb.clear(item, hrd, "Handover plan agreed" if item.owner == "supervisor" else "No balances")
+        if len(accts) > 1 and accts[1].user_id:
+            offb.initiate(accts[1].user, accts[1], {
+                "exit_type": "resignation", "reason": "studies", "details": "Leaving for a master's programme.",
+                "last_working_day": today + dt.timedelta(days=35)})
+        self.stdout.write(f"Exits demo: {Case.objects.count()} ER cases, {Asset.objects.count()} assets, "
+                          f"{Separation.objects.count()} exits.")

@@ -27,6 +27,7 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
   - new-hire surveys.
 - **Performance (delivered):** cycles, role-specific forms, cascading goals and objectives, competencies, self/manager/360 reviews, calibration, acknowledgment, improvement plans, merit link to salary reviews.
 - **Learning (delivered):** catalogue, requests and budgets, sessions and attendance, e-learning and quizzes, mandatory training compliance, CPD, training needs analysis, development plans, mentoring, effectiveness.
+- **Employee relations, assets and offboarding (delivered):** confidential cases with hearings, sanctions, approvals and appeals; asset issue, return and recovery; exits with clearance, exit interviews and turnover analytics.
 - Deferred within recruitment: job-board posting integrations, CV parsing and AI-assisted matching (features.txt marks these as advanced).
 - **Performance:**
   - cycles, role-specific templates, cascading objectives and KPIs, competencies;

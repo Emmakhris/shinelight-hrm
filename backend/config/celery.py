@@ -58,6 +58,14 @@ app.conf.beat_schedule = {
         "task": "apps.learning.tasks.learning_housekeeping",
         "schedule": crontab(hour=6, minute=30),
     },
+    "relations-escalation": {
+        "task": "apps.relations.tasks.relations_escalation",
+        "schedule": crontab(hour=7, minute=5),
+    },
+    "offboarding-housekeeping": {
+        "task": "apps.offboarding.tasks.offboarding_housekeeping",
+        "schedule": crontab(hour=2, minute=30),
+    },
     "scheduled-reports": {
         "task": "apps.reports.tasks.send_scheduled_reports",
         "schedule": crontab(hour=6, minute=0),

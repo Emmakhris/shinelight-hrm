@@ -123,6 +123,7 @@ def seed_payroll():
         ("REIMBURSEMENT", "Expense reimbursement", "earning", "other", "fixed", "exempt", one_off),
         ("TRAVEL_ADVANCE", "Travel advance", "earning", "advance", "fixed", "exempt", one_off),
         ("ADVANCE_RECOVERY", "Unspent advance recovery", "deduction", "advance", "fixed", "normal", one_off),
+        ("ASSET_RECOVERY", "Recovery for lost / damaged property", "deduction", "other", "fixed", "normal", one_off),
     ]
     for i, (code, name, et, cat, calc, tax, extra) in enumerate(elements):
         PayElement.objects.get_or_create(code=code, defaults={
@@ -183,6 +184,14 @@ def seed_workflows():
             (1, "Supervisor approval", "supervisor", None, 48, True),
             (2, "Training officer review", "role", Role.objects.get(code="training_officer"), 48, True),
             (3, "HR Director approval", "role", hr_dir, 72, False)]),
+        ("disciplinary_decision", "Serious sanction approval", 100, {}, [
+            (1, "HR Director approval", "role", hr_dir, 72, False)]),
+        ("separation", "Resignation / exit", 100, {}, [
+            (1, "Supervisor acknowledgment", "supervisor", None, 48, True),
+            (2, "HR confirmation", "role", hr, 48, False)]),
+        ("separation", "Involuntary exit", 50, {"field": "involuntary", "op": "eq", "value": True}, [
+            (1, "HR review", "role", hr, 48, False),
+            (2, "HR Director approval", "role", hr_dir, 72, False)]),
         ("probation_outcome", "Probation confirmation", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
         ("probation_outcome", "Probation extension / termination", 50,
          {"field": "recommendation", "op": "in", "value": ["extend", "terminate"]}, [
@@ -364,6 +373,25 @@ certificates, a pre-employment medical examination and presentation of your Ghan
 <p>Kindly confirm your acceptance by <b>{{ offer.expiry_date|date:"jS F, Y" }}</b> using the secure link sent to you.
 This offer lapses if not accepted by that date.</p>
 <br><p>Yours faithfully,</p><br><br><p><b>Head, Human Resource</b><br>{{ organization.name }}</p>"""),
+        "disciplinary_outcome": ("Disciplinary outcome", "warning", False, """
+<p>STRICTLY CONFIDENTIAL</p>
+<p>{{ employee.get_title_display }} {{ employee.full_name }}<br>{% if job_title %}{{ job_title.name }}{% endif %}</p>
+<p>Dear {{ employee.first_name }},</p>
+<h3>{{ action.get_action_type_display|upper }}</h3>
+<p>This letter follows the {% if case.case_type == "disciplinary" %}disciplinary process{% else %}process{% endif %}
+concerning matter {{ case.reference }}. {{ action.details|linebreaksbr }}</p>
+<p>This {{ action.get_action_type_display|lower }} takes effect from {{ action.effective_date|date:"jS F, Y" }}{% if action.expires_on %}
+ and will remain on your record until {{ action.expires_on|date:"jS F, Y" }}{% endif %}{% if action.suspension_days %}. You are suspended for {{ action.suspension_days }} day(s){% endif %}.</p>
+<p>You may respond in writing, and you have the right to appeal within 14 days of this letter by submitting
+your grounds through the HR self-service portal.</p>
+<br><p>Yours faithfully,</p><br><br><p><b>Head, Human Resource</b></p>"""),
+        "service_certificate": ("Certificate of service", "exit", False, """
+<p>TO WHOM IT MAY CONCERN</p><h3>CERTIFICATE OF SERVICE</h3>
+<p>This is to certify that <b>{{ employee.full_name }}</b> (Staff No. {{ employee.staff_number }}) was employed by
+{{ organization.name }} from {{ employee.original_hire_date|default:employee.hire_date|date:"jS F, Y" }} to
+{{ employee.exit_date|date:"jS F, Y" }}{% if job_title %}, last holding the position of {{ job_title.name }}{% if department %} in the {{ department.name }}{% endif %}{% endif %}.</p>
+<p>We wish {{ employee.first_name }} every success in the future.</p>
+<br><p>Yours faithfully,</p><br><br><p><b>Head, Human Resource</b><br>{{ organization.name }}</p>"""),
         "introduction": ("Letter of introduction", "introduction", True, """
 <p>{% if addressed_to %}{{ addressed_to }}{% else %}TO WHOM IT MAY CONCERN{% endif %}</p><h3>LETTER OF INTRODUCTION</h3>
 <p>We write to introduce <b>{{ employee.full_name }}</b>, {{ job_title.name }} of {{ organization.name }}.
@@ -496,6 +524,18 @@ def seed_learning():
                           duration_hours=6, description="Tables, formulas, pivot tables and charts.")
 
 
+def seed_assets():
+    from apps.assets.models import AssetCategory
+
+    for code, name, owner, returnable, tracked in [
+            ("laptop", "Laptop / desktop", "it", True, True), ("phone", "Phone / tablet", "it", True, True),
+            ("access_card", "ID / access card", "admin", True, True), ("keys", "Keys", "admin", True, False),
+            ("uniform", "Uniform", "admin", False, False), ("ppe", "Protective equipment (PPE)", "admin", False, False),
+            ("furniture", "Furniture / equipment", "admin", True, True), ("vehicle", "Vehicle", "admin", True, True)]:
+        AssetCategory.objects.get_or_create(code=code, defaults={"name": name, "owner": owner,
+                                                                 "is_returnable": returnable, "is_tracked": tracked})
+
+
 def seed_attendance():
     from apps.attendance.models import AttendancePolicy, Shift
 
@@ -538,6 +578,7 @@ def setup_organization(name, code, admin_username=None, admin_password=None, adm
         seed_onboarding()
         seed_performance()
         seed_learning()
+        seed_assets()
         year = dt.date.today().year
         seed_public_holidays(year)
         seed_public_holidays(year + 1)

@@ -50,7 +50,11 @@ The workflow engine also skips a step when its only approver already approved an
 
 | **Learning & development** | Course catalogue (classroom, e-learning, external, on-the-job) with CPD credits and costs; training requests routed to the supervisor and training office (HR Director above GHS 2,000 or beyond the department budget); sessions with capacity, waitlist and attendance; e-learning modules and scored assessments (answers never sent to the browser, 3 attempts); mandatory training by role with refresher periods, assigned automatically and tracked in a compliance matrix; completing a course renews the linked clinical competency used by roster credential checks; CPD records and annual requirements per role; training needs from appraisal competency gaps; individual development plans and mentoring; participant and manager (applied-on-the-job) evaluations; spend vs budget and effectiveness reports |
 
-Still to come in Phase 3: employee relations, assets and offboarding, engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Employee relations** | Confidential grievance, harassment, whistleblowing (optionally anonymous), misconduct and disciplinary cases; access by assignment only (case officer, investigators, HR Director), never by line management, and never to a party; least-loaded case officer assignment; investigation plans, notes and evidence; meetings with neutral invitations and minutes; a minuted hearing is required before any formal sanction; suspension, demotion and dismissal need HR Director approval; outcome letters filed as restricted documents the addressee can still read; responses and appeals decided by someone independent; warnings lapse automatically; deadlines and escalation; name-free trend reports |
+| **Assets** | Register of tagged assets (laptops, phones, access cards) and issue of untagged uniforms/PPE; employee acknowledgment; transfers; loss/damage reporting; return with condition and recovery through payroll; outstanding-items dashboard including leavers |
+| **Offboarding** | Resignation through self-service, other exits recorded by HR; notice period per the Labour Act with shortfall shown; approval (involuntary exits need the HR Director); clearance across supervisor, IT, admin, finance, HR and payroll with automatic checks (assets returned, loans and advances, exit interview, final payroll run); access revoked on the last day unless an approved extension applies; dismissals from ER cases start offboarding automatically; certificate of service; exit interviews; turnover analytics and upcoming retirements |
+
+Still to come in Phase 3: engagement and OHS. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -86,7 +90,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 82 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning
+cd backend && .venv/Scripts/python -m pytest          # 95 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

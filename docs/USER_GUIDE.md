@@ -18,6 +18,9 @@
 - **New starters:** Onboarding tasks shows your checklist (policies to acknowledge, details to confirm, training, a short feedback survey) and what HR, IT and your supervisor are preparing for you.
 - **Appraisal:** My performance → open the current cycle. Add objectives (weights total 100%, link them to a goal) and submit them to your supervisor; at year end rate yourself with evidence and submit. When your review is released, read it and acknowledge; if you disagree, say why and HR follows up.
 - **Learning:** My learning shows your training (mandatory items first), the course catalogue (request or enrol; paid courses need approval), your CPD credits against your licence requirement, and your development plan. E-learning: work through the modules, then pass the assessment (3 attempts). Rate each course when you finish.
+- **Raise a concern:** report a grievance, harassment (anonymously if you prefer) or wrongdoing. Only the assigned HR case officer sees it. Outcomes addressed to you appear here with the letter; you can respond and appeal within 14 days.
+- **Equipment:** My equipment lists what was issued to you. Acknowledge receipt and report losses or damage straight away.
+- **Resigning:** Resignation & exit → submit your resignation (notice: one month after three years' service, two weeks before that). Once accepted, return your equipment and complete the short exit interview.
 - **360 feedback:** Feedback requests lists colleagues who asked for your view. Answers are confidential and only shown combined with at least two others.
 - **Interview panels:** if you sit on a panel, Interview panels lists your interviews; open the CV and submit a scorecard afterwards.
 
@@ -51,6 +54,12 @@
 ## Training officer
 
 Under **Training administration**: maintain the catalogue (mark courses mandatory for roles with a refresher period, link BLS-type courses to the clinical competency they renew), add e-learning modules and questions, schedule sessions and record attendance and scores, assign courses to people or departments, set budgets, and verify CPD logged by staff. **Compliance & effectiveness** shows the mandatory-training matrix, skills gaps from appraisals and spend, ratings and on-the-job impact.
+
+## HR: employee relations and exits
+
+**Employee relations:** cases are assigned to the least-loaded case officer who is not involved. Plan the investigation, add statements and evidence, then hold and minute a hearing before any formal sanction. Suspension, demotion and dismissal go to the HR Director. Appeals are decided by a senior reviewer who was not the case officer. A dismissal starts offboarding automatically.
+
+**Exits:** record the exit (or accept the employee's resignation from the inbox). On approval each department gets its clearance item; the system blocks clearing while equipment is out or travel advances are unretired, and payroll's item waits for a final run. Extend system access for a handover only when needed (up to 30 days). The certificate of service is issued when clearance completes.
 
 ## HR: performance cycles
 

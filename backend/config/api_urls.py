@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from apps.accounts.admin_views import LoginAttemptViewSet, UserLookupViewSet, UserViewSet
+from apps.assets import views as ast
 from apps.attendance import views as att
 from apps.audit.views import AuditLogViewSet
 from apps.compensation import views as comp
@@ -13,12 +14,14 @@ from apps.integrations import views as integ
 from apps.learning import views as lrn
 from apps.leave import views as leave
 from apps.notifications import views as notif
+from apps.offboarding import views as offb
 from apps.onboarding import views as onb
 from apps.organization import views as org
 from apps.payroll import views as pay
 from apps.performance import views as perf
 from apps.rbac.views import PermissionViewSet, RoleAssignmentViewSet, RoleViewSet
 from apps.recruitment import views as rec
+from apps.relations import views as er
 from apps.reports import views as rep
 from apps.selfservice import views as me
 from apps.servicedesk import views as sd
@@ -119,6 +122,12 @@ router.register("learning/cpd", lrn.CPDViewSet, basename="cpd")
 router.register("learning/cpd-requirements", lrn.CPDRequirementViewSet, basename="cpd-requirements")
 router.register("learning/development-goals", lrn.GoalViewSet, basename="development-goals")
 router.register("learning/mentorships", lrn.MentorshipViewSet, basename="mentorships")
+# employee relations, assets, offboarding
+router.register("relations/cases", er.CaseViewSet, basename="er-cases")
+router.register("assets/categories", ast.CategoryViewSet, basename="asset-categories")
+router.register("assets/items", ast.AssetViewSet, basename="assets")
+router.register("assets/assignments", ast.AssignmentViewSet, basename="asset-assignments")
+router.register("offboarding/separations", offb.SeparationViewSet, basename="separations")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -195,6 +204,15 @@ urlpatterns = [
     path("me/vacancies/", rec.InternalVacancyView.as_view()),
     path("me/onboarding/", onb.MyOnboardingView.as_view()),
     path("learning/compliance/", lrn.ComplianceView.as_view()),
+    path("relations/my/", er.MyCasesView.as_view()),
+    path("relations/my/<int:pk>/withdraw/", er.WithdrawMineView.as_view()),
+    path("relations/my/letter/<int:pk>/", er.MyLetterView.as_view()),
+    path("relations/appeals/<int:pk>/decide/", er.AppealDecisionView.as_view()),
+    path("relations/warnings/<int:employee_id>/", er.WarningsView.as_view()),
+    path("relations/report/", er.ReportView.as_view()),
+    path("assets/dashboard/", ast.DashboardView.as_view()),
+    path("offboarding/clearance/<int:pk>/clear/", offb.ClearView.as_view()),
+    path("offboarding/analytics/", offb.AnalyticsView.as_view()),
     path("learning/needs/", lrn.NeedsView.as_view()),
     path("learning/report/", lrn.ReportView.as_view()),
     path("public/careers/<slug:org_code>/", rec.CareersView.as_view()),

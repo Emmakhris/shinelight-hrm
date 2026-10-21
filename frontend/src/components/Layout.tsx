@@ -8,6 +8,7 @@ import Description from "@mui/icons-material/Description";
 import EventNote from "@mui/icons-material/EventNote";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import Gavel from "@mui/icons-material/Gavel";
 import Groups from "@mui/icons-material/Groups";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import Inbox from "@mui/icons-material/Inbox";
@@ -53,6 +54,9 @@ const NAV: NavGroup[] = [
     { label: "My requests", to: "/me/requests" },
     { label: "My performance", to: "/performance/my", employee: true },
     { label: "My learning", to: "/learning", employee: true },
+    { label: "My equipment", to: "/assets/my", employee: true },
+    { label: "Raise a concern", to: "/relations/my", employee: true },
+    { label: "Resignation & exit", to: "/offboarding/my", employee: true },
     { label: "Feedback requests", to: "/performance/feedback" },
     { label: "Onboarding tasks", to: "/onboarding/my-tasks" },
     { label: "Interview panels", to: "/recruitment/my-interviews" },
@@ -77,6 +81,11 @@ const NAV: NavGroup[] = [
     { label: "Recruitment analytics", to: "/recruitment/analytics", perm: "recruitment.view" },
     { label: "Onboarding", to: "/onboarding", perm: "onboarding.view", scope: "organization" },
     { label: "Onboarding checklists", to: "/onboarding/setup", perm: "onboarding.manage" },
+  ] },
+  { label: "Employee relations & exits", icon: <Gavel />, items: [
+    { label: "Employee relations cases", to: "/relations", perm: ["relations.manage", "relations.view_all"] },
+    { label: "Exits & clearance", to: "/offboarding", perm: ["offboarding.view", "assets.manage", "payroll.prepare", "expenses.pay"] },
+    { label: "Assets & equipment", to: "/assets", perm: "assets.view" },
   ] },
   { label: "Learning & development", icon: <School />, items: [
     { label: "Training administration", to: "/learning/admin", perm: "learning.manage" },

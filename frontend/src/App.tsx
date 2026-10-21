@@ -101,6 +101,14 @@ const EnrollmentPage = lazy(() => import("./pages/learning/EnrollmentPage"));
 const TeamLearning = lazy(() => import("./pages/learning/TeamLearning"));
 const LearningAdmin = lazy(() => import("./pages/learning/LearningAdmin"));
 const LearningCompliance = lazy(() => import("./pages/learning/Compliance"));
+const MyCases = lazy(() => import("./pages/relations/MyCases"));
+const ERCases = lazy(() => import("./pages/relations/Cases"));
+const CaseDetail = lazy(() => import("./pages/relations/CaseDetail"));
+const AssetsPage = lazy(() => import("./pages/assets/Assets"));
+const MyAssets = lazy(() => import("./pages/assets/MyAssets"));
+const Exits = lazy(() => import("./pages/offboarding/Exits"));
+const ExitDetail = lazy(() => import("./pages/offboarding/ExitDetail"));
+const MyExit = lazy(() => import("./pages/offboarding/MyExit"));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
 
@@ -222,6 +230,14 @@ export default function App() {
           <Route path="onboarding/probation" element={<Probation />} />
           <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
           <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
+          <Route path="relations/my" element={<MyCases />} />
+          <Route path="relations" element={g(<ERCases />, ["relations.manage", "relations.view_all"])} />
+          <Route path="relations/cases/:id" element={g(<CaseDetail />, ["relations.manage", "relations.view_all"])} />
+          <Route path="assets" element={g(<AssetsPage />, "assets.view")} />
+          <Route path="assets/my" element={<MyAssets />} />
+          <Route path="offboarding" element={g(<Exits />, ["offboarding.view", "assets.manage", "payroll.prepare", "expenses.pay"])} />
+          <Route path="offboarding/my" element={<MyExit />} />
+          <Route path="offboarding/:id" element={<ExitDetail />} />
           <Route path="learning" element={<MyLearning />} />
           <Route path="learning/enrollments/:id" element={<EnrollmentPage />} />
           <Route path="learning/team" element={<TeamLearning />} />
