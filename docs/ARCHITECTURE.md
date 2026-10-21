@@ -45,6 +45,7 @@ Browser / PWA ──HTTPS──► nginx (static PWA, security headers) ──/a
 | `offboarding` | Separations with the `separation` workflow, notice rules, clearance items with automatic checks, access extensions (consulted by `employees.services.revoke_access`), exit interviews, certificate of service, turnover analytics |
 | `engagement` | Surveys (invites kept separate from anonymous responses), results with minimum group size, action plans, recognition, suggestions, events |
 | `safety` | Incidents, corrective actions, risk assessments, inspections, statistics; `OHRecord` clinical zone (`ohs.medical` only) and `fitness_status()` used by `hospital.services.credential_issues` |
+| `talent` | Talent profiles, nine-box assessments with evidenced potential criteria, succession plans and successors, career paths and promotion eligibility, workforce plans, plan lines and scenarios; `project()` is a pure projection function |
 | `onboarding` | Checklist templates, onboarding records and tasks (auto-started by a `post_save` signal on new employees), probation reviews and outcome workflow |
 
 ## Key design decisions

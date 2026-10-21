@@ -115,6 +115,10 @@ const SafetyPage = lazy(() => import("./pages/safety/Safety"));
 const IncidentDetail = lazy(() => import("./pages/safety/IncidentDetail"));
 const OccupationalHealth = lazy(() => import("./pages/safety/OccupationalHealth"));
 const MySafety = lazy(() => import("./pages/safety/MySafety"));
+const MyCareer = lazy(() => import("./pages/talent/MyCareer"));
+const TalentReview = lazy(() => import("./pages/talent/TalentReview"));
+const PlanningPage = lazy(() => import("./pages/talent/Planning"));
+const PlanDetail = lazy(() => import("./pages/talent/Planning").then((m) => ({ default: m.PlanDetail })));
 const Careers = lazy(() => import("./pages/public/Careers"));
 const OfferResponse = lazy(() => import("./pages/public/OfferResponse"));
 
@@ -236,6 +240,10 @@ export default function App() {
           <Route path="onboarding/probation" element={<Probation />} />
           <Route path="onboarding/setup" element={g(<OnboardingSetup />, "onboarding.manage")} />
           <Route path="onboarding/:id" element={g(<OnboardingDetail />, "onboarding.view")} />
+          <Route path="talent/me" element={<MyCareer />} />
+          <Route path="talent" element={<TalentReview />} />
+          <Route path="planning" element={g(<PlanningPage />, "planning.view")} />
+          <Route path="planning/:id" element={g(<PlanDetail />, "planning.view")} />
           <Route path="engagement" element={<EngagementHub />} />
           <Route path="engagement/admin" element={g(<EngagementAdmin />, "engagement.manage")} />
           <Route path="safety" element={g(<SafetyPage />, "ohs.view")} />

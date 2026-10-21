@@ -13,3 +13,4 @@ from apps.payroll import workflow_handlers as _payroll  # noqa: F401
 from apps.performance import workflow_handlers as _performance  # noqa: F401
 from apps.recruitment import workflow_handlers as _recruitment  # noqa: F401
 from apps.relations import workflow_handlers as _relations  # noqa: F401
+from apps.talent import workflow_handlers as _talent  # noqa: F401

@@ -73,6 +73,10 @@ PERMISSIONS = [
     ("ohs.view", "View the incident register, risks and inspections", False),
     ("ohs.manage", "Investigate incidents, manage risks, inspections and safety actions", False),
     ("ohs.medical", "Occupational health clinical records (OH professionals only)", True),
+    ("talent.view", "View talent profiles, assessments, succession and career paths", True),
+    ("talent.manage", "Run talent reviews and succession plans, define career paths", True),
+    ("planning.view", "View establishment, workforce plans and projections", False),
+    ("planning.manage", "Create workforce plans and scenarios", False),
     ("hospital.view", "View clinical credentials and rosters", False),
     ("hospital.manage", "Manage clinical credentials and rosters", False),
 ]
@@ -110,7 +114,7 @@ DEFAULT_ROLES = {
          "expenses.view", "expenses.manage", "benefits.manage", "compensation.view", "recruitment.view",
          "recruitment.manage", "recruitment.requisition", "onboarding.view", "onboarding.manage", "performance.view",
          "performance.manage", "learning.view", "relations.manage", "assets.view", "offboarding.view",
-         "offboarding.manage", "engagement.view", "engagement.manage", "ohs.view"],
+         "offboarding.manage", "engagement.view", "engagement.manage", "ohs.view", "talent.view", "planning.view"],
     ),
     "recruitment_officer": (
         "Recruitment Officer",
@@ -136,7 +140,8 @@ DEFAULT_ROLES = {
         "department",
         ["employees.view", "organization.view", "leave.view", "leave.approve", "attendance.view",
          "attendance.approve", "reports.view", "documents.view", "expenses.view", "recruitment.requisition",
-         "onboarding.view", "performance.view", "learning.view", "offboarding.view", "engagement.view", "ohs.view"],
+         "onboarding.view", "performance.view", "learning.view", "offboarding.view", "engagement.view", "ohs.view",
+         "talent.view", "planning.view"],
     ),
     "line_manager": (
         "Line Manager",
@@ -149,7 +154,7 @@ DEFAULT_ROLES = {
         "Finance Officer",
         "organization",
         ["payroll.view", "reports.view", "reports.view_payroll", "reports.export", "organization.view",
-         "expenses.view", "expenses.pay", "employees.view"],
+         "expenses.view", "expenses.pay", "employees.view", "planning.view"],
     ),
     "training_officer": (
         "Training Officer",

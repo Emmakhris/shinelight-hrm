@@ -27,6 +27,7 @@ from apps.reports import views as rep
 from apps.safety import views as ohs
 from apps.selfservice import views as me
 from apps.servicedesk import views as sd
+from apps.talent import views as tal
 from apps.tenancy import views as ten
 from apps.workflow import views as wf
 
@@ -141,6 +142,13 @@ router.register("safety/actions", ohs.ActionViewSet, basename="safety-actions")
 router.register("safety/risks", ohs.RiskViewSet, basename="risk-assessments")
 router.register("safety/inspections", ohs.InspectionViewSet, basename="inspections")
 router.register("safety/oh-records", ohs.OHRecordViewSet, basename="oh-records")
+# talent & workforce planning
+router.register("talent/assessments", tal.AssessmentViewSet, basename="talent-assessments")
+router.register("talent/succession", tal.SuccessionViewSet, basename="succession")
+router.register("talent/career-paths", tal.CareerPathViewSet, basename="career-paths")
+router.register("planning/plans", tal.WorkforcePlanViewSet, basename="workforce-plans")
+router.register("planning/lines", tal.LineViewSet, basename="plan-lines")
+router.register("planning/scenarios", tal.ScenarioViewSet, basename="scenarios")
 # workflow
 router.register("workflow/definitions", wf.DefinitionViewSet, basename="wf-definitions")
 router.register("workflow/steps", wf.StepViewSet, basename="wf-steps")
@@ -228,6 +236,9 @@ urlpatterns = [
     path("safety/fitness/", ohs.FitnessView.as_view()),
     path("safety/fitness/<int:employee_id>/", ohs.FitnessView.as_view()),
     path("safety/stats/", ohs.StatsView.as_view()),
+    path("talent/me/", tal.MyProfileView.as_view()),
+    path("talent/employees/<int:employee_id>/", tal.EmployeeTalentView.as_view()),
+    path("planning/establishment/", tal.EstablishmentView.as_view()),
     path("offboarding/clearance/<int:pk>/clear/", offb.ClearView.as_view()),
     path("offboarding/analytics/", offb.AnalyticsView.as_view()),
     path("learning/needs/", lrn.NeedsView.as_view()),

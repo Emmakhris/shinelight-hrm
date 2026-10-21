@@ -83,6 +83,12 @@ AUDITED = {
     "safety.CorrectiveAction": {},
     "safety.RiskAssessment": {},
     "safety.OHRecord": {"sensitive": ["clinical_notes"]},
+    "talent.TalentAssessment": {"sensitive": ["rationale", "criteria"]},
+    "talent.SuccessionPlan": {},
+    "talent.Successor": {},
+    "talent.CareerPath": {},
+    "talent.WorkforcePlan": {},
+    "talent.Scenario": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

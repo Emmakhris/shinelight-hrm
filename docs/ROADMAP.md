@@ -43,7 +43,7 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
 
 ## Phase 4: Enterprise intelligence & SaaS
 
-- **Planning:** succession planning (critical roles, readiness, single-person dependencies), workforce planning and scenarios.
+- **Planning (delivered):** succession planning (critical roles, readiness, single-person dependencies), talent reviews, career paths, workforce planning and scenarios.
 - **Analytics:** custom report builder, predictive turnover and retirement analytics.
 - **Identity and integrations:** AD/LDAP and SSO (Microsoft 365), finance/ERP connectors, BI warehouse feed, LHIMS integration (minimum data).
 - **Governed AI assistant:** policy Q&A over approved documents, natural-language reporting and drafting, with permission-aware retrieval and human approval.

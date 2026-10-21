@@ -13,6 +13,7 @@ import Groups from "@mui/icons-material/Groups";
 import HealthAndSafety from "@mui/icons-material/HealthAndSafety";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import Inbox from "@mui/icons-material/Inbox";
+import Insights from "@mui/icons-material/Insights";
 import LocalHospital from "@mui/icons-material/LocalHospital";
 import Logout from "@mui/icons-material/Logout";
 import Menu from "@mui/icons-material/Menu";
@@ -55,6 +56,7 @@ const NAV: NavGroup[] = [
     { label: "My requests", to: "/me/requests" },
     { label: "My performance", to: "/performance/my", employee: true },
     { label: "My learning", to: "/learning", employee: true },
+    { label: "My career", to: "/talent/me", employee: true },
     { label: "My equipment", to: "/assets/my", employee: true },
     { label: "Raise a concern", to: "/relations/my", employee: true },
     { label: "Engagement & wellbeing", to: "/engagement", employee: true },
@@ -76,6 +78,7 @@ const NAV: NavGroup[] = [
     { label: "Team appraisals", to: "/performance/team", perm: ["leave.approve", "performance.manage"] },
     { label: "Improvement plans", to: "/performance/plans", perm: ["leave.approve", "performance.manage"] },
     { label: "Team learning", to: "/learning/team", perm: ["leave.approve", "learning.manage"] },
+    { label: "Talent review", to: "/talent", perm: ["leave.approve", "talent.view"] },
   ] },
   { label: "Recruitment & onboarding", icon: <PersonAdd />, items: [
     { label: "Vacancies & pipeline", to: "/recruitment/vacancies", perm: "recruitment.view" },
@@ -89,6 +92,10 @@ const NAV: NavGroup[] = [
     { label: "Employee relations cases", to: "/relations", perm: ["relations.manage", "relations.view_all"] },
     { label: "Exits & clearance", to: "/offboarding", perm: ["offboarding.view", "assets.manage", "payroll.prepare", "expenses.pay"] },
     { label: "Assets & equipment", to: "/assets", perm: "assets.view" },
+  ] },
+  { label: "Talent & workforce planning", icon: <Insights />, items: [
+    { label: "Talent & succession", to: "/talent", perm: "talent.view" },
+    { label: "Workforce planning", to: "/planning", perm: "planning.view" },
   ] },
   { label: "Engagement & safety", icon: <HealthAndSafety />, items: [
     { label: "Surveys & engagement", to: "/engagement/admin", perm: "engagement.manage" },

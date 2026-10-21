@@ -60,6 +60,9 @@ ENDPOINTS = [
     "engagement/action-plans/", "engagement/recognition/", "engagement/suggestions/", "engagement/events/",
     "engagement/overview/", "safety/incidents/", "safety/incidents/?mine=1", "safety/actions/", "safety/risks/",
     "safety/inspections/", "safety/oh-records/", "safety/fitness/", "safety/stats/",
+    "talent/me/", "talent/assessments/", "talent/assessments/grid/", "talent/assessments/criteria/",
+    "talent/succession/", "talent/succession/risk/", "talent/career-paths/", "planning/plans/",
+    "planning/plans/1/project/", "planning/lines/", "planning/scenarios/", "planning/establishment/",
 ]
 
 failures = 0

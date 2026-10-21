@@ -192,6 +192,9 @@ def seed_workflows():
         ("separation", "Involuntary exit", 50, {"field": "involuntary", "op": "eq", "value": True}, [
             (1, "HR review", "role", hr, 48, False),
             (2, "HR Director approval", "role", hr_dir, 72, False)]),
+        ("workforce_plan", "Workforce plan approval", 100, {}, [
+            (1, "HR Director approval", "role", hr_dir, 120, False),
+            (2, "Finance (budget) approval", "role", Role.objects.get(code="finance_officer"), 120, False)]),
         ("probation_outcome", "Probation confirmation", 100, {}, [(1, "HR review", "role", hr, 72, False)]),
         ("probation_outcome", "Probation extension / termination", 50,
          {"field": "recommendation", "op": "in", "value": ["extend", "terminate"]}, [

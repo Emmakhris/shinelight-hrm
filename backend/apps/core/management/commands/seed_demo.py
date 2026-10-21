@@ -57,6 +57,8 @@ class Command(BaseCommand):
             self._seed_exits(org, admin)
         with org_context(org, admin), transaction.atomic():
             self._seed_wellbeing(org, admin)
+        with org_context(org, admin), transaction.atomic():
+            self._seed_planning(org, admin)
         self.stdout.write(self.style.SUCCESS("Demo data loaded. See backend/apps/core/management/commands/"
                                              "seed_demo.py for demo usernames."))
 
@@ -958,3 +960,81 @@ class Command(BaseCommand):
                 "valid_until": today + dt.timedelta(days=14), "review_date": today + dt.timedelta(days=14)})
         self.stdout.write(f"Wellbeing demo: surveys, recognition, events; safety incidents "
                           f"{ohs.stats()['incidents']} + near misses {ohs.stats()['near_misses']}.")
+
+
+    def _seed_planning(self, org, admin):
+        """Succession, talent review, career paths and a workforce plan (Phase 4). Idempotent."""
+        from apps.employees.models import Employee
+        from apps.learning.models import Course
+        from apps.organization.models import Department, JobTitle, Position
+        from apps.talent import services as tal
+        from apps.talent.models import CareerPath, PlanLine, Scenario, SuccessionPlan, TalentProfile, WorkforcePlan
+
+        if WorkforcePlan.objects.exists() or not Employee.objects.exists():
+            return
+        User = get_user_model()
+        today = dt.date.today()
+        hrd, mgr = User.objects.get(username="hrdirector"), User.objects.get(username="manager")
+        titles = {t.name: t for t in JobTitle.objects.all()}
+
+        def title(name):
+            return titles.get(name)
+
+        # career paths (published to everyone)
+        ld = Course.objects.filter(code="LD-401").first()
+        for frm, to, yrs, rating in (("Staff Nurse", "Nursing Officer (Ward In-charge)", 3, 4),
+                                     ("Accountant", "Finance Manager", 4, 4), ("HR Officer", "Human Resource Manager", 4, 4)):
+            if title(frm) and title(to):
+                p, _ = CareerPath.objects.get_or_create(from_title=title(frm), to_title=title(to), defaults={
+                    "min_years_in_role": D(yrs), "min_rating": rating,
+                    "required_qualification": "Relevant professional licence / membership"})
+                if ld:
+                    p.required_courses.add(ld)
+        # succession for critical positions
+        hro_emp = User.objects.get(username="hrofficer").employee
+        for pos in Position.objects.filter(is_critical=True, status="approved"):
+            plan, _ = SuccessionPlan.objects.get_or_create(position=pos, defaults={
+                "risk_of_loss": "medium", "impact_of_loss": "high"})
+            if pos.job_title.name == "Human Resource Manager" and hro_emp:
+                tal.add_successor(hrd, plan, hro_emp, "ready_now", "Lead the next salary review cycle.")
+            if pos.job_title.name.startswith("Nursing Officer"):
+                nurses = list(Employee.objects.filter(job_title__name="Staff Nurse", status="active")
+                              .order_by("hire_date")[:2])
+                for i, n in enumerate(nurses):
+                    tal.add_successor(hrd, plan, n, "1_2_years" if i == 0 else "3_plus",
+                                      "First-line supervisor programme; act as shift lead.", rank=i + 1)
+                plan.risk_of_loss = "high"
+                plan.knowledge_transfer = "Ward duty rota rules and IPC audit process are undocumented."
+                plan.save()
+        # talent review for the ward team (by the ward manager)
+        crit = {"learning_agility": {"met": True, "evidence": "Picked up the new e-prescribing workflow quickly"},
+                "leadership": {"met": True, "evidence": "Acts as shift lead on nights"},
+                "aspiration": {"met": True, "evidence": "Asked to join the supervisor programme"}}
+        period = f"{today.year} talent review"
+        for i, emp in enumerate(Employee.objects.filter(supervisor=mgr.employee, status="active")[:8]):
+            perf = tal.suggested_performance(emp) or 2
+            pot = 3 if i == 0 else (2 if i % 3 else 1)
+            c = crit if pot == 3 else ({"learning_agility": crit["learning_agility"]} if pot == 2 else {})
+            tal.assess(mgr, emp, period, perf, pot, c, "Placement agreed at the ward talent review.",
+                       "high" if i == 1 else "low")
+        demo = User.objects.get(username="employee").employee
+        TalentProfile.objects.get_or_create(employee=demo, defaults={
+            "aspirations": "Become a ward in-charge within three years; interested in infection control.",
+            "skills": ["Wound care", "IV cannulation", "Patient education"], "open_to_lateral_moves": True})
+        # workforce plan
+        plan = WorkforcePlan.objects.create(name=f"{today.year + 1} workforce plan", year=today.year + 1,
+                                            horizon_years=3, notes="Ward A expansion to 30 beds.")
+        ward, lab = Department.objects.filter(code="WARD_A").first(), Department.objects.filter(code="LAB").first()
+        if ward and title("Staff Nurse"):
+            PlanLine.objects.create(plan=plan, department=ward, job_title=title("Staff Nurse"), planned_headcount=10,
+                                    workload_units=D("30"), workload_label="beds", target_ratio=D("0.33"),
+                                    justification="Ministry guideline of one nurse per three beds across shifts.")
+        if lab:
+            PlanLine.objects.create(plan=plan, department=lab, planned_headcount=4,
+                                    justification="Extended lab hours from January.")
+        Scenario.objects.create(plan=plan, name="Expansion: +10% a year, 10% pay rise", growth_percent=D("10"),
+                                salary_increase_percent=D("10"))
+        Scenario.objects.create(plan=plan, name="Budget squeeze: hiring freeze", hiring_freeze=True,
+                                salary_increase_percent=D("5"), budget_cap=D("500000"))
+        self.stdout.write(f"Planning demo: {SuccessionPlan.objects.count()} succession plans, bench strength "
+                          f"{tal.succession_risk()['bench_strength_percent']}%.")

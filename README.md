@@ -54,7 +54,16 @@ The workflow engine also skips a step when its only approver already approved an
 | **Assets** | Register of tagged assets (laptops, phones, access cards) and issue of untagged uniforms/PPE; employee acknowledgment; transfers; loss/damage reporting; return with condition and recovery through payroll; outstanding-items dashboard including leavers |
 | **Offboarding** | Resignation through self-service, other exits recorded by HR; notice period per the Labour Act with shortfall shown; approval (involuntary exits need the HR Director); clearance across supervisor, IT, admin, finance, HR and payroll with automatic checks (assets returned, loans and advances, exit interview, final payroll run); access revoked on the last day unless an approved extension applies; dismissals from ER cases start offboarding automatically; certificate of service; exit interviews; turnover analytics and upcoming retirements |
 | **Engagement** | Engagement, pulse, stay and wellbeing surveys; anonymous responses stored with no link to the person; results only for groups of 5+ (smaller groups combined), shuffled unattributed comments; engagement index, eNPS, themes and workload/burnout risk by department; managers see their own area only; action plans; recognition wall; suggestion box (anonymous option, votes, HR responses); wellness, welfare and EAP events with registration |
-| **Health & safety** | Incident and near-miss reporting by anyone (urgent alerts for needlestick/splash exposures and serious incidents); investigation, root cause, lost time, reportable-incident tracking; corrective actions with overdue reminders; 5x5 risk assessments with review dates; inspections with checklists; LTIFR, days since last lost-time injury and trends. **Occupational health records are a separate restricted zone** (OH professionals only, not even the HR Director): HR and rostering see only the fitness outcome and work restrictions, and staff marked unfit cannot be rostered for clinical duties | See [docs/ROADMAP.md](docs/ROADMAP.md).
+| **Health & safety** | Incident and near-miss reporting by anyone (urgent alerts for needlestick/splash exposures and serious incidents); investigation, root cause, lost time, reportable-incident tracking; corrective actions with overdue reminders; 5x5 risk assessments with review dates; inspections with checklists; LTIFR, days since last lost-time injury and trends. **Occupational health records are a separate restricted zone** (OH professionals only, not even the HR Director): HR and rostering see only the fitness outcome and work restrictions, and staff marked unfit cannot be rostered for clinical duties |
+
+### Phase 4 (in progress): Enterprise intelligence
+
+| Area | Highlights |
+|---|---|
+| **Talent & succession** | Employee career profiles (aspirations, skills, mobility); nine-box talent reviews where performance is suggested from the latest appraisal and potential must be justified against published criteria with evidence (no opaque labelling); succession plans for critical positions with readiness levels; automatic flags for vacant critical roles, missing or not-ready successors, single-person dependencies and incumbents retiring within two years; bench strength; published career paths with transparent promotion eligibility (time in role, rating, required courses, qualification to verify) |
+| **Workforce planning** | Establishment by department (approved, occupied, vacant, frozen, proposed) with budget vs actual cost; workforce plans by department and role with workload drivers (e.g. nurses per bed); what-if scenarios (attrition, pay rise, growth, department cuts, hiring freeze, budget cap); multi-year projection of retirements, attrition, hires needed and staff cost with employer on-cost read from the statutory rate table; skills shortages; plan approval by the HR Director and finance |
+
+See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Quick start (development)
 
@@ -90,7 +99,7 @@ Full runbook (TLS, backups, restore tests, monitoring, upgrades): [docs/OPERATIO
 ## Tests
 
 ```bash
-cd backend && .venv/Scripts/python -m pytest          # 101 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety
+cd backend && .venv/Scripts/python -m pytest          # 106 tests: payroll golden figures, workflow, leave, RBAC, audit, attendance, service desk, expenses, compensation, e-signature, recruitment, onboarding, probation, performance, learning, employee relations, assets, offboarding, engagement, health & safety, talent and workforce planning
 .venv/Scripts/python scripts/smoke_api.py              # every endpoint x every demo role (needs running server + seed_demo)
 .venv/Scripts/python scripts/e2e_flow.py               # leave approval → payroll maker-checker → payslip PDF → GL balance
 .venv/Scripts/python scripts/e2e_phase2.py             # ticket → letter → e-signature; travel advance → claim → payroll recovery; benefits

@@ -23,6 +23,7 @@
 - **Resigning:** Resignation & exit → submit your resignation (notice: one month after three years' service, two weeks before that). Once accepted, return your equipment and complete the short exit interview.
 - **Have your say:** Engagement & wellbeing shows open surveys (anonymous where stated), the recognition wall, the suggestion box and staff events. Recognise a colleague any time.
 - **Safety:** Report a safety incident for any accident, near miss, needlestick or aggression. Medical follow-up is handled confidentially by occupational health.
+- **Career:** My career holds your aspirations and skills, and shows the published requirements for the next role on your career path and what you still need.
 - **360 feedback:** Feedback requests lists colleagues who asked for your view. Answers are confidential and only shown combined with at least two others.
 - **Interview panels:** if you sit on a panel, Interview panels lists your interviews; open the CV and submit a scorecard afterwards.
 
@@ -72,6 +73,10 @@ Under **Training administration**: maintain the catalogue (mark courses mandator
 ## HR: engagement surveys
 
 Create a survey from the template, choose the audience and closing date, then **Launch**. Results appear once at least 5 people (configurable, minimum 3) have responded; departments below the threshold are combined. Turn findings into action plans and report progress back to staff.
+
+## HR: talent, succession and workforce planning
+
+**Talent review:** supervisors place each team member on the nine-box. Performance is suggested from the latest appraisal; potential must be justified against the published criteria with evidence (high potential needs at least three). **Succession:** mark critical positions under Organization → Positions, then add successors with a readiness level; the risk table flags gaps, single-person dependencies and retirements. **Workforce planning:** compare the establishment with actual cost, build a plan by department and role (optionally with a workload ratio such as nurses per bed), add scenarios and compare projections, then submit the plan for HR Director and finance approval.
 
 ## HR: performance cycles
 

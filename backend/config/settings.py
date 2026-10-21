@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "apps.offboarding",
     "apps.engagement",
     "apps.safety",
+    "apps.talent",
 ]
 
 MIDDLEWARE = [

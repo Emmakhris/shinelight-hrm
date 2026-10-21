@@ -16,7 +16,8 @@ Original requirements: `features.txt`. Phases: `docs/ROADMAP.md`. Architecture: 
   2. ~~performance~~ (done);
   3. ~~LMS~~ (done);
   4. ~~employee relations, assets and offboarding~~ (done);
-  5. ~~engagement and OHS~~ (done). Next: Phase 4 (see docs/ROADMAP.md).
+  5. ~~engagement and OHS~~ (done).
+- **Phase 4** (on the `phase-4` branch): ~~succession and workforce planning~~ (done); next: report builder/predictive analytics, SSO/integrations, governed AI assistant, SaaS conversion.
 
 ## Commands
 
@@ -27,7 +28,7 @@ cd backend
 .venv/Scripts/python manage.py migrate
 .venv/Scripts/python manage.py seed_demo                       # demo org + 28 employees (idempotent; refreshes config)
 .venv/Scripts/python manage.py runserver 8000
-.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 101 tests; add --create-db after model changes
+.venv/Scripts/python -m pytest -p no:cacheprovider -q          # 106 tests; add --create-db after model changes
 .venv/Scripts/ruff check apps config --select F,E9
 .venv/Scripts/python manage.py makemigrations --check --dry-run
 .venv/Scripts/python scripts/smoke_api.py                      # every endpoint x every demo role (needs running server)
@@ -104,6 +105,7 @@ npm test && npm run build
 - Employee relations: case access is by assignment (`relations.services.can_access`) and parties are always excluded, even if they hold HR permissions. Never add line-manager scope to ER cases. Workflow titles and notifications for ER stay generic (no names or allegations).
 - `employees.services.revoke_access` consults `offboarding.services.access_extended`; pass `force=True` only when an extension has ended.
 - Survey responses must never be linkable to a person when `anonymous`: store no employee, date only, and never report a group below `min_group_size`. Occupational-health clinical data (`safety.OHRecord.clinical_notes`) is `ohs.medical` only; `hr_director` is deliberately excluded from that permission.
+- Talent: never auto-label people. `talent.services.assess` enforces evidenced criteria for potential; keep projections in the pure `project()` and read on-costs from `payroll.services.rate_set_for`.
 - Candidates are not users: email/SMS them with `recruitment.services.message_candidate`, not `notify()`.
 - The `hospital` features are behind the per-org feature flag (`OrganizationFeature`). The demo org has payroll, hospital, sms and geofence enabled.
 - On Windows the Bash tool can choke on long inline heredocs containing quotes. Write a script file and run it instead.
