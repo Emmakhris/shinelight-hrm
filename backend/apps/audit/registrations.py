@@ -91,6 +91,8 @@ AUDITED = {
     "talent.Scenario": {},
     "reports.ReportDefinition": {},
     "reports.ScheduledReport": {},
+    "sso.IdentityProvider": {"sensitive": ["client_secret"]},
+    "sso.ExternalIdentity": {},
     "onboarding.ProbationReview": {"sensitive": ["ratings", "improvements", "reviewer_comments"]},
 }
 

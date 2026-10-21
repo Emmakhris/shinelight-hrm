@@ -44,6 +44,7 @@ const NAV: NavGroup[] = [
   { label: "My workspace", icon: <HomeOutlined />, items: [
     { label: "Home", to: "/" },
     { label: "My profile", to: "/me/profile", employee: true },
+    { label: "Ask HR assistant", to: "/assistant", feature: "ai_assistant" },
     { label: "My leave", to: "/leave/my", employee: true },
     { label: "My attendance", to: "/attendance/my", employee: true },
     { label: "My payslips", to: "/me/payslips", employee: true, feature: "payroll" },
@@ -178,6 +179,8 @@ const NAV: NavGroup[] = [
     { label: "Organization settings", to: "/admin/settings", perm: "admin.settings" },
     { label: "Notifications & announcements", to: "/admin/notifications", perm: "notifications.manage" },
     { label: "Integrations & API", to: "/admin/integrations", perm: "integrations.manage" },
+    { label: "Single sign-on", to: "/admin/sso", perm: "admin.settings" },
+    { label: "AI assistant", to: "/admin/assistant", perm: "admin.settings" },
     { label: "Audit trail", to: "/admin/audit", perm: "audit.view" },
   ] },
 ];

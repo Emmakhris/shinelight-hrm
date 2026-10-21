@@ -45,6 +45,6 @@ notifications, documents, RBAC and audit, so none needs new infrastructure.
 
 - **Planning (delivered):** succession planning (critical roles, readiness, single-person dependencies), talent reviews, career paths, workforce planning and scenarios.
 - **Analytics (delivered):** custom report builder, predictive turnover and retirement analytics, transparent attrition-risk indicators.
-- **Identity and integrations:** AD/LDAP and SSO (Microsoft 365), finance/ERP connectors, BI warehouse feed, LHIMS integration (minimum data).
-- **Governed AI assistant:** policy Q&A over approved documents, natural-language reporting and drafting, with permission-aware retrieval and human approval.
+- **Identity and integrations:** SSO via OpenID Connect (delivered: Microsoft 365 / Entra ID, Google Workspace, Okta); still to do: AD/LDAP directory sync, finance/ERP connectors, BI warehouse feed, LHIMS integration (minimum data).
+- **Governed AI assistant (delivered):** policy Q&A over approved knowledge-base articles, the user's own records and aggregate headcount through permission-aware read-only tools, drafting, no decisions; later: request classification and routing, case-note summaries for authorised reviewers.
 - **Multi-tenant SaaS:** tenant onboarding and billing, subdomain routing, PostgreSQL RLS, per-tenant branding.

@@ -46,6 +46,7 @@ class OrganizationFeature(models.Model):
         ("sms", "SMS notifications"),
         ("biometric", "Biometric attendance"),
         ("geofence", "Geofenced web clock-in"),
+        ("ai_assistant", "AI HR assistant (governed)"),
     ]
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="features")
     code = models.CharField(max_length=50, choices=FEATURES)

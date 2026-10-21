@@ -1,11 +1,24 @@
+import Business from "@mui/icons-material/Business";
 import LockOutlined from "@mui/icons-material/LockOutlined";
-import { Alert, Box, Button, Card, CardContent, Link, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Divider, Link, Stack, TextField, Typography } from "@mui/material";
+import axios from "axios";
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, errorMessage } from "../api/client";
 import { useAuth, type Me } from "./AuthContext";
 
-type Step = "login" | "mfa" | "setup" | "forgot" | "reset";
+type Step = "login" | "mfa" | "setup" | "forgot" | "reset" | "sso";
+
+const SSO_ERRORS: Record<string, string> = {
+  cancelled: "Single sign-on was cancelled.",
+  expired: "The single sign-on attempt expired. Please try again.",
+  state_mismatch: "The sign-in response didn't match this browser. Please try again.",
+  no_account: "There is no ShineLight HRM account for your work email. Please contact HR.",
+  domain_not_allowed: "Your email domain isn't set up for single sign-on here.",
+  email_unverified: "Your identity provider hasn't verified your email address.",
+  inactive: "Your account is disabled. Please contact HR.",
+  locked: "Your account is temporarily locked. Try again later.",
+};
 
 export default function LoginPage() {
   const { setMe } = useAuth();
@@ -19,7 +32,10 @@ export default function LoginPage() {
   const [methods, setMethods] = useState<string[]>([]);
   const [method, setMethod] = useState("totp");
   const [qr, setQr] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const ssoError = params.get("sso_error");
+  const [error, setError] = useState<string | null>(
+    ssoError ? SSO_ERRORS[ssoError] || "Single sign-on failed. Please try again or contact your IT administrator." : null);
+  const [email, setEmail] = useState("");
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -43,7 +59,16 @@ export default function LoginPage() {
   const submitLogin = (e: FormEvent) => {
     e.preventDefault();
     run(async () => {
-      const { data } = await api.post("/auth/login/", { username, password });
+      let data;
+      try {
+        data = (await api.post("/auth/login/", { username, password })).data;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.data?.code === "sso_required") {
+          setEmail(username.includes("@") ? username : "");
+          setStep("sso");
+        }
+        throw err;
+      }
       if (data.mfa_required) {
         setMfaToken(data.mfa_token);
         setMethods(data.mfa_methods);
@@ -83,6 +108,14 @@ export default function LoginPage() {
     setStep("setup");
   });
 
+  const submitSso = (e: FormEvent) => {
+    e.preventDefault();
+    run(async () => {
+      const { data } = await api.post("/sso/discover/", { email });
+      window.location.assign(`${data.start_url}?next=${encodeURIComponent("/")}`);
+    });
+  };
+
   const submitForgot = (e: FormEvent) => {
     e.preventDefault();
     run(async () => {
@@ -117,6 +150,7 @@ export default function LoginPage() {
               {step === "setup" && "Set up your authenticator app"}
               {step === "forgot" && "Reset your password"}
               {step === "reset" && "Choose a new password"}
+              {step === "sso" && "Sign in with your organization account"}
             </Typography>
           </Stack>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -135,6 +169,21 @@ export default function LoginPage() {
                 <Link component="button" type="button" variant="body2" onClick={() => { setStep("forgot"); setInfo(null); }}>
                   Forgot password?
                 </Link>
+                <Divider>or</Divider>
+                <Button variant="outlined" startIcon={<Business />} onClick={() => { setStep("sso"); setError(null); }}>
+                  Sign in with single sign-on
+                </Button>
+              </Stack>
+            </form>
+          )}
+
+          {step === "sso" && (
+            <form onSubmit={submitSso}>
+              <Stack spacing={2}>
+                <Typography variant="body2">Enter your work email and you'll be sent to your organization's sign-in page (for example Microsoft 365).</Typography>
+                <TextField label="Work email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus required />
+                <Button type="submit" variant="contained" size="large" disabled={busy}>Continue</Button>
+                <Link component="button" type="button" variant="body2" onClick={() => { setStep("login"); setError(null); }}>Sign in with a password instead</Link>
               </Stack>
             </form>
           )}

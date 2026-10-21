@@ -26,14 +26,18 @@ from apps.relations import views as er
 from apps.reports import views as rep
 from apps.safety import views as ohs
 from apps.selfservice import views as me
+from apps.assistant import views as ai
 from apps.servicedesk import views as sd
 from apps.talent import views as tal
+from apps.sso import views as sso
 from apps.tenancy import views as ten
 from apps.workflow import views as wf
 
 router = DefaultRouter()
 # administration
 router.register("admin/users", UserViewSet, basename="users")
+router.register("admin/sso-providers", sso.IdentityProviderViewSet, basename="sso-providers")
+router.register("assistant/conversations", ai.ConversationViewSet, basename="assistant-conversations")
 router.register("admin/login-attempts", LoginAttemptViewSet, basename="login-attempts")
 router.register("users/lookup", UserLookupViewSet, basename="user-lookup")
 router.register("admin/permissions", PermissionViewSet, basename="permissions")
@@ -251,4 +255,11 @@ urlpatterns = [
     path("public/careers/<slug:org_code>/<int:pk>/", rec.CareerVacancyView.as_view()),
     path("public/careers/<slug:org_code>/<int:pk>/apply/", rec.CareerApplyView.as_view()),
     path("public/offers/<str:token>/", rec.OfferResponseView.as_view()),
+    path("sso/discover/", sso.DiscoverView.as_view()),
+    path("sso/<int:pk>/start/", sso.StartView.as_view()),
+    path("sso/callback/", sso.CallbackView.as_view()),
+    path("assistant/status/", ai.StatusView.as_view()),
+    path("assistant/ask/", ai.AskView.as_view()),
+    path("assistant/messages/<int:pk>/feedback/", ai.FeedbackView.as_view()),
+    path("assistant/settings/", ai.SettingsView.as_view()),
 ] + router.urls
